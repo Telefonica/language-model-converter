@@ -1,0 +1,49 @@
+{
+  "name": "@telefonica/language-model-converter",
+  "version": "1.0.0",
+  "description": "Language Model converter for yot-bot",
+  "license": "UNLICENSED",
+  "repository": "https://github.com/Telefonica/yot-bot",
+  "author": "TDAF",
+  "keywords": [
+    "luis",
+    "fourth platform"
+  ],
+  "files": [
+    "lib"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "clean": "rm -fR lib ",
+    "build": "npm run typings && npm run clean && npm run tslint && npm run compile && npm run security",
+    "compile": "tsc -p .",
+    "typings": "typings install",
+    "tslint": "tslint './src/**/*.ts'",
+    "test": "npm run build && mocha -R spec 'lib/**/*.spec.js'",
+    "watch-ts": "nodemon --watch src -e ts --exec 'npm run compile'",
+    "security": "nsp check",
+    "prepublish": "npm run build",
+    "parse": "npm run compile && node lib/index"
+  },
+  "dependencies": {
+    "commander": "^2.9.0",
+    "js-yaml": "^3.6.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2",
+    "nock": "^8.0.0",
+    "nodemon": "^1.9.2",
+    "parse-glob": "^3.0.4",
+    "sinon": "^1.17.5",
+    "sinon-chai": "^2.8.0",
+    "nsp": "^2.6.1",
+    "tslint": "^3.14.0",
+    "typescript": "^1.8.10",
+    "typings": "^1.3.2"
+  },
+  "engines": {
+    "node": "~6.3.0"
+  },
+  "typings": "./lib/index.d.ts"
+}

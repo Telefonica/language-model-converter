@@ -1,0 +1,14 @@
+{
+  "globalDependencies": {
+    "commander": "registry:dt/commander#2.3.0+20160317120654",
+    "js-yaml": "registry:dt/js-yaml#3.5.2+20160316171810",
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353",
+    "node": "registry:dt/node#6.0.0+20160818175514"
+  },
+  "dependencies": {
+    "chai": "registry:npm/chai#3.5.0+20160723033700",
+    "debug": "registry:npm/debug#2.0.0+20160723033700",
+    "nock": "registry:npm/nock#0.7.0+20160723033700",
+    "sinon": "registry:npm/sinon#1.16.0+20160723033700"
+  }
+}

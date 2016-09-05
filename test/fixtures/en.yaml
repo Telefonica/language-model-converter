@@ -1,0 +1,6 @@
+my.test.intent.1:
+  - This is a test (utterance). Entities [London:location::origin] and [Madrid:location::destination] and [Spain:country]
+
+my.test.intent.2:
+  - This is a test utterance 1
+  - This is a test utterance 2
