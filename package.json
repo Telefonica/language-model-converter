@@ -15,10 +15,10 @@
   "main": "lib/index.js",
   "scripts": {
     "clean": "rm -fR lib ",
-    "build": "npm run typings && npm run clean && npm run tslint && npm run compile && npm run security",
+    "build": "npm run typings && npm run clean && npm run lint && npm run compile && npm run security",
     "compile": "tsc -p .",
     "typings": "typings install",
-    "tslint": "tslint './src/**/*.ts'",
+    "lint": "tslint './src/**/*.ts'",
     "test": "npm run build && mocha -R spec 'lib/**/*.spec.js'",
     "watch-ts": "nodemon --watch src -e ts --exec 'npm run compile'",
     "security": "nsp check",
