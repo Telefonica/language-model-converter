@@ -16,8 +16,8 @@ export class LanguageModelParser {
 
         let luisModel: Luis.Model = {
             luis_schema_version: '1.3.0',
-            name: 'movistar',
-            desc: 'Bot Model',
+            name: 'tef',
+            desc: 'Bot Model ' + new Date(),
             culture: culture,
             intents: [],
             entities: [],
@@ -30,6 +30,12 @@ export class LanguageModelParser {
         };
 
         let intents = Object.keys(doc);
+        let invalidIntents = intents.some(intent => intent.length > 50);
+        if (invalidIntents) {
+            console.log('Not able to process intents longer than 50 characters');
+            process.exit(1);
+        }
+
         let entitiesMap = new Map<string, Luis.Entity>();
 
         intents.forEach(intent => {

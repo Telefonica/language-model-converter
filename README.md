@@ -5,6 +5,8 @@ This is a tool to convert language files defined in [language-model](../language
 ## Usage examples
 
 ```sh
-npm run parse --silent -- -p ../language-model -c en
-npm run parse --silent -- -p ../language-model -c es
+./bin/language-model-converter -p ../language-model -c en-us
+./bin/language-model-converter -p ../language-model -c es-es
 ```
+
+Notice that you can use [luis-cli](../luis-cli) to import or update the generated LUIS models.

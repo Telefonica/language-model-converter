@@ -85,24 +85,24 @@ describe('Language Model Publisher', () => {
 
         let expectedUtterances = [
             {
-                "text": "Santiago went to the Santiago Bernabeu .",
-                "intent": "my.test.intent.1",
-                "entities": [
+                'text': 'Santiago went to the Santiago Bernabeu .',
+                'intent': 'my.test.intent.1',
+                'entities': [
                     {
-                        "entity": "place",
-                        "startPos": 4,
-                        "endPos": 5
+                        'entity': 'place',
+                        'startPos': 4,
+                        'endPos': 5
                     }
                 ]
             },
             {
-                "text": "I live in the 2ºC apartment in Madrid .",
-                "intent": "my.test.intent.1",
-                "entities": [
+                'text': 'I live in the 2ºC apartment in Madrid .',
+                'intent': 'my.test.intent.1',
+                'entities': [
                     {
-                        "entity": "location",
-                        "startPos": 7,
-                        "endPos": 7
+                        'entity': 'location',
+                        'startPos': 7,
+                        'endPos': 7
                     }
                 ]
             }
