@@ -12,8 +12,6 @@ const cli: InterfaceCLI = commander.option('-p, --path <path>', 'Path to the fol
                                    .option('-c, --culture <culture>', 'Culture code (ex. "en-us")')
                                    .parse(process.argv);
 
-cli.path = path.join(cli.path, cli.culture + '.yaml');
-
 let parser = new LanguageModelParser();
 let luisModel = parser.parse(cli.path, cli.culture);
 

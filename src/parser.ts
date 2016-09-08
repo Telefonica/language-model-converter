@@ -1,14 +1,22 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as yaml from 'js-yaml';
 
 import { Luis } from './luis-model';
 
 export class LanguageModelParser {
-    parse(path: string, culture: string): Luis.Model {
-        let doc: any;
+    parse(folder: string, culture: string): Luis.Model {
+        let doc: any = {};
         try {
-            let yamlFileContents = fs.readFileSync(path, 'utf8');
-            doc = yaml.safeLoad(yamlFileContents);
+            let files = fs.readdirSync(folder)
+                          .filter(file => !fs.statSync(path.join(folder, file)).isDirectory())
+                          .filter(file => file.startsWith(culture) && file.endsWith('.yaml'));
+
+            files.forEach(file => {
+                // XXX Conflicting keys not supported. Multiple files could be merged together.
+                let yamlFileContents = fs.readFileSync(path.join(folder, file), 'utf8');
+                Object.assign(doc, yaml.safeLoad(yamlFileContents));
+            });
         } catch (e) {
             console.log('Not able to parse language model\nError: %s', e.message);
             process.exit(e.errno);
