@@ -5,6 +5,9 @@
   "license": "UNLICENSED",
   "repository": "https://github.com/Telefonica/yot-bot",
   "author": "TDAF",
+  "bin": {
+    "language-model-converter": "./bin/language-model-converter"
+  },
   "keywords": [
     "luis",
     "fourth platform"
