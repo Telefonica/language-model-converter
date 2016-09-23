@@ -5,8 +5,9 @@ import * as yaml from 'js-yaml';
 import { Luis } from './luis-model';
 
 export class LanguageModelParser {
+    private doc: any = {};
+
     parse(folder: string, culture: string): Luis.Model {
-        let doc: any = {};
         try {
             let files = fs.readdirSync(folder)
                           .filter(file => !fs.statSync(path.join(folder, file)).isDirectory())
@@ -15,7 +16,7 @@ export class LanguageModelParser {
             files.forEach(file => {
                 // XXX Conflicting keys not supported. Multiple files could be merged together.
                 let yamlFileContents = fs.readFileSync(path.join(folder, file), 'utf8');
-                Object.assign(doc, yaml.safeLoad(yamlFileContents));
+                Object.assign(this.doc, yaml.safeLoad(yamlFileContents));
             });
         } catch (e) {
             console.log('Not able to parse language model\nError: %s', e.message);
@@ -37,7 +38,7 @@ export class LanguageModelParser {
             utterances: []
         };
 
-        let intents = Object.keys(doc);
+        let intents = Object.keys(this.doc);
         let invalidIntents = intents.some(intent => intent.length > 50);
         if (invalidIntents) {
             console.log('Not able to process intents longer than 50 characters');
@@ -46,12 +47,19 @@ export class LanguageModelParser {
 
         let entitiesMap = new Map<string, Luis.Entity>();
 
+        intents = intents.filter(intent => !intent.startsWith('list.'));
+
         intents.forEach(intent => {
-            doc[intent].forEach((sentence: string) => {
+            let sentences = this.doc[intent];
+            sentences = sentences.map((sentence: string) => this.expandVariables(sentence))
+                                 .reduce((a: string[], b: string[]) => a.concat(b)); // flatten arrays
+
+            sentences.forEach((sentence: string) => {
                 let sentenceEntities = this.extractEntities(sentence);
                 this.registerGlobalEntities(sentenceEntities, entitiesMap);
 
                 let plainSentence = this.replaceRawEntityValues(sentence, sentenceEntities);
+
                 let utterance = this.buildUtterance(plainSentence, intent, sentenceEntities);
                 luisModel.utterances.push(utterance);
             });
@@ -60,6 +68,26 @@ export class LanguageModelParser {
         luisModel.entities = Array.from(entitiesMap.values());
         luisModel.intents = intents.map(intent => <Luis.Intent>{name: intent});
         return luisModel;
+    }
+
+    private expandVariables(sentence: string): string[] {
+        let sentenceEntities = this.extractEntities(sentence);
+        let listEntities = sentenceEntities.filter(entity => entity.entityValue.startsWith('${')); // phraselist placeholder
+
+        if (listEntities.length > 1) {
+            console.log('Not able to process more than one variable in a sentence');
+            process.exit(1);
+        }
+
+        let expandedSentences: string[] = [];
+        listEntities.forEach(listEntity => {
+            let listValues = this.doc['list.' + listEntity.entityValue];
+            listValues.forEach((value: string) => {
+                expandedSentences.push(sentence.replace(listEntity.entityValue, value));
+            });
+        });
+
+        return expandedSentences;
     }
 
     private extractEntities(sentence: string): any[] {
