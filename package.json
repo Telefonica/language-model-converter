@@ -8,12 +8,12 @@
   "bin": {
     "language-model-converter": "./bin/language-model-converter"
   },
+  "files": [
+    "lib", "bin"
+  ],
   "keywords": [
     "luis",
     "fourth platform"
-  ],
-  "files": [
-    "lib"
   ],
   "main": "lib/index.js",
   "scripts": {
