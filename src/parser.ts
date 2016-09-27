@@ -51,6 +51,7 @@ export class LanguageModelParser {
 
         intents.forEach(intent => {
             let sentences = this.doc[intent];
+
             sentences = sentences.map((sentence: string) => this.expandVariables(sentence))
                                  .reduce((a: string[], b: string[]) => a.concat(b)); // flatten arrays
 
@@ -73,6 +74,10 @@ export class LanguageModelParser {
     private expandVariables(sentence: string): string[] {
         let sentenceEntities = this.extractEntities(sentence);
         let listEntities = sentenceEntities.filter(entity => entity.entityValue.startsWith('${')); // phraselist placeholder
+
+        if (listEntities.length === 0) {
+            return [sentence];
+        }
 
         if (listEntities.length > 1) {
             console.log('Not able to process more than one variable in a sentence');

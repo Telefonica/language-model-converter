@@ -1,0 +1,6 @@
+list.${country}:
+  - Spain
+  - France
+
+my.test.intent:
+  - This is the country [${country}:country]

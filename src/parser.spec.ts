@@ -2,10 +2,10 @@ import { expect } from 'chai';
 
 import { LanguageModelParser } from './parser';
 
-describe('Language Model Publisher', () => {
+describe('Language Model Converter', () => {
     it('should parse a valid yaml file', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures/en.yaml', 'en');
+        let luisModel = parser.parse('./test/fixtures', 'en-basic');
 
         let expectedIntents = [
             {
@@ -72,16 +72,16 @@ describe('Language Model Publisher', () => {
 
     it('should add basic model information', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures/en.yaml', 'en');
+        let luisModel = parser.parse('./test/fixtures', 'en-basic');
         expect(luisModel.luis_schema_version).to.not.be.empty;
         expect(luisModel.name).to.not.be.empty;
         expect(luisModel.desc).to.not.be.empty;
-        expect(luisModel.culture).to.eq('en');
+        expect(luisModel.culture).to.eq('en-basic');
     });
 
     it.skip('should parse a valid yaml file with corner cases', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures/en-cornercases.yaml', 'en');
+        let luisModel = parser.parse('./test/fixtures', 'en-cornercases');
 
         let expectedUtterances = [
             {
@@ -103,6 +103,38 @@ describe('Language Model Publisher', () => {
                         'entity': 'location',
                         'startPos': 7,
                         'endPos': 7
+                    }
+                ]
+            }
+        ];
+
+        expect(luisModel.utterances).to.eql(expectedUtterances);
+    });
+
+    it.skip('should parse a valid yaml file with variables (phrase lists)', () => {
+        let parser = new LanguageModelParser();
+        let luisModel = parser.parse('./test/fixtures', 'en-variables');
+
+        let expectedUtterances = [
+            {
+                'text': 'This is the country Spain',
+                'intent': 'my.test.intent',
+                'entities': [
+                    {
+                        'entity': 'country',
+                        'startPos': 4,
+                        'endPos': 4
+                    }
+                ]
+            },
+            {
+                'text': 'This is the country France',
+                'intent': 'my.test.intent',
+                'entities': [
+                    {
+                        'entity': 'country',
+                        'startPos': 4,
+                        'endPos': 4
                     }
                 ]
             }

@@ -7,12 +7,12 @@
     "suppressImplicitAnyIndexErrors": false,
     "outDir": "./lib",
     "preserveConstEnums": true,
+    "pretty": true,
     "removeComments": true,
     "target": "es2015",
     "sourceMap": true
   },
   "filesGlob": [
-    "typings/index.d.ts",
     "src/**/*.ts"
   ],
   "exclude": [
