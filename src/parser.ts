@@ -7,15 +7,11 @@ import { Luis } from './luis-model';
 export class LanguageModelParser {
     private doc: any = {};
 
-    parse(folder: string, culture: string): Luis.Model {
+    parse(files: string[], culture: string): Luis.Model {
         try {
-            let files = fs.readdirSync(folder)
-                          .filter(file => !fs.statSync(path.join(folder, file)).isDirectory())
-                          .filter(file => file.startsWith(culture) && file.endsWith('.yaml'));
-
             files.forEach(file => {
                 // XXX Conflicting keys not supported. Multiple files could be merged together.
-                let yamlFileContents = fs.readFileSync(path.join(folder, file), 'utf8');
+                let yamlFileContents = fs.readFileSync(file, 'utf8');
                 Object.assign(this.doc, yaml.safeLoad(yamlFileContents));
             });
         } catch (e) {

@@ -29,11 +29,13 @@
   "dependencies": {
     "@types/node": "^6.0.40",
     "commander": "^2.9.0",
+    "glob": "^7.1.0",
     "js-yaml": "^3.6.1"
   },
   "devDependencies": {
     "@types/chai": "^3.4.33",
     "@types/commander": "^2.3.30",
+    "@types/glob": "^5.0.30",
     "@types/js-yaml": "^3.5.28",
     "@types/mocha": "^2.2.32",
     "@types/sinon": "^1.16.30",

@@ -5,7 +5,7 @@ import { LanguageModelParser } from './parser';
 describe('Language Model Converter', () => {
     it('should parse a valid yaml file', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures', 'en-basic');
+        let luisModel = parser.parse(['./test/fixtures/en-basic.yaml'], 'en-basic');
 
         let expectedIntents = [
             {
@@ -72,7 +72,7 @@ describe('Language Model Converter', () => {
 
     it('should add basic model information', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures', 'en-basic');
+        let luisModel = parser.parse(['./test/fixtures/en-basic.yaml'], 'en-basic');
         expect(luisModel.luis_schema_version).to.not.be.empty;
         expect(luisModel.name).to.not.be.empty;
         expect(luisModel.desc).to.not.be.empty;
@@ -81,7 +81,7 @@ describe('Language Model Converter', () => {
 
     it.skip('should parse a valid yaml file with corner cases', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures', 'en-cornercases');
+        let luisModel = parser.parse(['./test/fixtures/en-cornercases.yaml'], 'en-cornercases');
 
         let expectedUtterances = [
             {
@@ -113,7 +113,7 @@ describe('Language Model Converter', () => {
 
     it.skip('should parse a valid yaml file with variables (phrase lists)', () => {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse('./test/fixtures', 'en-variables');
+        let luisModel = parser.parse(['./test/fixtures/en-variables.yaml'], 'en-variables');
 
         let expectedUtterances = [
             {
