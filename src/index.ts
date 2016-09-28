@@ -17,7 +17,7 @@ const cli: InterfaceCLI = commander
 
 commander.on('--help', function(){
     console.log(`  Examples:
-  
+
     Convert all files in 'models' and its subfolders, starting with 'en',
     setting the locale to en-us
       $ language-model-converter ./models/**/en*.yaml -c en-us
@@ -29,6 +29,11 @@ commander.parse(process.argv);
 cli.files = cli.args
     .map(pattern => glob.sync(pattern))
     .reduce((a, b) => a.concat(b), []) ;
+
+if (cli.files.length === 0) {
+    console.error(`No files found`);
+    process.exit(1);
+}
 
 let parser = new LanguageModelParser();
 let luisModel = parser.parse(cli.files, cli.culture);
