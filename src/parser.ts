@@ -146,7 +146,8 @@ export class LanguageModelParser {
 
     private buildUtterance(sentence: string, intent: string, entities: any[]) {
         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
-        let normalizedSentence = sentence.replace(/[\W|_|\.]/g, capture => ' ' + capture + ' ');
+        // ^\w\u00C0-\u017F means a not word, including accented chars (see http://stackoverflow.com/a/11550799/12388)
+        let normalizedSentence = sentence.replace(/[^\w\u00C0-\u017F|_|\.]/g, capture => ' ' + capture + ' ');
 
         // omit non-word exceptions not handled by microsoft ('º' and 'ª')
         normalizedSentence = normalizedSentence.replace(' º ', 'º');
