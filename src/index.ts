@@ -2,7 +2,6 @@ import * as commander from 'commander';
 import * as path from 'path';
 import * as glob from 'glob';
 
-
 import { LanguageModelParser } from './parser';
 
 interface InterfaceCLI extends commander.ICommand {
@@ -36,6 +35,10 @@ if (cli.files.length === 0) {
 }
 
 let parser = new LanguageModelParser();
-let luisModel = parser.parse(cli.files, cli.culture);
-
-console.log(JSON.stringify(luisModel, null, 2));
+try {
+    let luisModel = parser.parse(cli.files, cli.culture);
+    console.log(JSON.stringify(luisModel, null, 2));
+} catch (err) {
+    console.error(err);
+    process.exit(1);
+}

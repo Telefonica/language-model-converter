@@ -79,7 +79,7 @@ describe('Language Model Converter', () => {
         expect(luisModel.culture).to.eq('en-basic');
     });
 
-    it.skip('should parse a valid yaml file with corner cases', () => {
+    it('should parse a valid yaml file with corner cases', () => {
         let parser = new LanguageModelParser();
         let luisModel = parser.parse(['./test/fixtures/en-cornercases.yaml'], 'en-cornercases');
 
@@ -111,7 +111,7 @@ describe('Language Model Converter', () => {
         expect(luisModel.utterances).to.eql(expectedUtterances);
     });
 
-    it.skip('should parse a valid yaml file with variables (phrase lists)', () => {
+    it('should parse a valid yaml file with variables (phrase lists)', () => {
         let parser = new LanguageModelParser();
         let luisModel = parser.parse(['./test/fixtures/en-variables.yaml'], 'en-variables');
 
@@ -137,6 +137,16 @@ describe('Language Model Converter', () => {
                         'endPos': 4
                     }
                 ]
+            },
+            {
+                'text': 'This is the country Spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'This is the country France',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
             }
         ];
 

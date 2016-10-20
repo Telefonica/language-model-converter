@@ -4,3 +4,6 @@ list.${country}:
 
 my.test.intent:
   - This is the country [${country}:country]
+
+my.test.expansion:
+  - This is the country ${country}

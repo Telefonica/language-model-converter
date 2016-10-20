@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as _ from 'lodash';
 
 import { Luis } from './luis-model';
 
@@ -14,9 +15,8 @@ export class LanguageModelParser {
                 let yamlFileContents = fs.readFileSync(file, 'utf8');
                 Object.assign(this.doc, yaml.safeLoad(yamlFileContents));
             });
-        } catch (e) {
-            console.log('Not able to parse language model\nError: %s', e.message);
-            process.exit(e.errno);
+        } catch (err) {
+            throw new Error('Not able to parse language model: ' + err);
         }
 
         let luisModel: Luis.Model = {
@@ -34,61 +34,71 @@ export class LanguageModelParser {
             utterances: []
         };
 
-        let intents = Object.keys(this.doc);
-        let invalidIntents = intents.some(intent => intent.length > 50);
-        if (invalidIntents) {
-            console.log('Not able to process intents longer than 50 characters');
-            process.exit(1);
-        }
+        let keys = Object.keys(this.doc);
+
+        let intentNames = keys
+            // remove the lists: lines starting by "list." that are not intents
+            .filter(intentName => !intentName.startsWith('list.'))
+            .map(intentName => {
+                if (intentName.length > 50) {
+                    throw new Error(`Intent "${intentName}" should be less than 50 characters. was ${intentName.length}`);
+                }
+                return intentName;
+            });
+
+        let list = new Map<string, string[]>();
+        keys
+            .filter(intentName => intentName.startsWith('list.'))
+            .forEach(intentName => {
+                list.set(
+                    intentName.slice('list.${'.length, -1),
+                    this.doc[intentName]
+                );
+            });
 
         let entitiesMap = new Map<string, Luis.Entity>();
 
-        intents = intents.filter(intent => !intent.startsWith('list.'));
+        intentNames.forEach(intent => {
+                let sentences = this.doc[intent];
 
-        intents.forEach(intent => {
-            let sentences = this.doc[intent];
-
-            sentences = sentences.map((sentence: string) => this.expandVariables(sentence))
-                                 .reduce((a: string[], b: string[]) => a.concat(b)); // flatten arrays
-
-            sentences.forEach((sentence: string) => {
-                let sentenceEntities = this.extractEntities(sentence);
-                this.registerGlobalEntities(sentenceEntities, entitiesMap);
-
-                let plainSentence = this.replaceRawEntityValues(sentence, sentenceEntities);
-
-                let utterance = this.buildUtterance(plainSentence, intent, sentenceEntities);
-                luisModel.utterances.push(utterance);
-            });
+                sentences
+                    .map((sentence: string) => this.expandVariables(sentence, list))
+                    .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
+                    .forEach((sentence: string) => {
+                        let utterance = this.buildUtterance(sentence, intent);
+                        utterance.entities.forEach(entity => this.registerEntity(entity, entitiesMap));
+                        luisModel.utterances.push(utterance);
+                    });
         });
 
         luisModel.entities = Array.from(entitiesMap.values());
-        luisModel.intents = intents.map(intent => <Luis.Intent>{name: intent});
+        luisModel.intents = intentNames.map(intent => <Luis.Intent>{name: intent});
         return luisModel;
     }
 
-    private expandVariables(sentence: string): string[] {
-        let sentenceEntities = this.extractEntities(sentence);
-        let listEntities = sentenceEntities.filter(entity => entity.entityValue.startsWith('${')); // phraselist placeholder
+    private expandVariables(sentence: string, variables: Map<string, string[]>): string[] {
+        let expandedSentences = new Set([sentence]);
 
-        if (listEntities.length === 0) {
-            return [sentence];
-        }
-
-        if (listEntities.length > 1) {
-            console.log('Not able to process more than one variable in a sentence');
-            process.exit(1);
-        }
-
-        let expandedSentences: string[] = [];
-        listEntities.forEach(listEntity => {
-            let listValues = this.doc['list.' + listEntity.entityValue];
-            listValues.forEach((value: string) => {
-                expandedSentences.push(sentence.replace(listEntity.entityValue, value));
+        expandedSentences.forEach(sentence => {
+            variables.forEach((values, key) => {
+                values.forEach(value => {
+                    let newSentence: string;
+                    try {
+                        newSentence = _.template(sentence)({[key]: value});
+                    } catch (err) {
+                        throw new Error(`Only one variable is allowed in sentence "${sentence}"`);
+                    }
+                    if (newSentence !== sentence) {
+                        expandedSentences.add(newSentence);
+                        expandedSentences.delete(sentence);
+                    } else {
+                        expandedSentences.add(sentence);
+                    }
+                });
             });
         });
 
-        return expandedSentences;
+        return Array.from(expandedSentences);
     }
 
     private extractEntities(sentence: string): any[] {
@@ -100,56 +110,46 @@ export class LanguageModelParser {
         while (match = regexEntity.exec(sentence)) {
             let entityValue = match[1];
             let entityType = match[2];
-            let entityEndIndex = regexEntity.lastIndex;
-            let entityStartIndex = regexEntity.lastIndex - '[:]'.length - entityType.length - entityValue.length;
 
-            entities.push({entityValue, entityType, entityStartIndex, entityEndIndex});
+            entities.push({
+                entityValue,
+                entityType
+            });
         }
 
         return entities;
     }
 
-    private registerGlobalEntities(sentenceEntities: any[], entitiesMap: Map<string, Luis.Entity>): void {
-        sentenceEntities.forEach(entity => {
-            let entityType: string = entity.entityType;
-            let entitySubtype: string;
+    private registerEntity(entity: any, entitiesMap: Map<string, Luis.Entity>): void {
+        let entityType: string = entity.entity;
+        let entitySubtype: string;
 
-            let composedEntitySeparatorPosition = entityType.indexOf('::');
-            if (composedEntitySeparatorPosition >= 0) {
-                entitySubtype = entityType.substring(composedEntitySeparatorPosition + '::'.length);
-                entityType = entityType.substring(0, composedEntitySeparatorPosition);
+        let composedEntitySeparatorPosition = entityType.indexOf('::');
+        if (composedEntitySeparatorPosition >= 0) {
+            entitySubtype = entityType.substring(composedEntitySeparatorPosition + '::'.length);
+            entityType = entityType.substring(0, composedEntitySeparatorPosition);
+        }
+
+        let luisEntity = entitiesMap.get(entityType);
+        luisEntity = luisEntity || { name: entityType };
+
+        if (entitySubtype) {
+            luisEntity.children = luisEntity.children || [];
+            if (luisEntity.children.indexOf(entitySubtype) === -1) {
+                luisEntity.children.push(entitySubtype);
             }
+        }
 
-            let luisEntity = entitiesMap.get(entityType);
-            luisEntity = luisEntity || { name: entityType };
+        entitiesMap.set(entityType, luisEntity);
 
-            if (entitySubtype) {
-                luisEntity.children = luisEntity.children || [];
-                if (luisEntity.children.indexOf(entitySubtype) === -1) {
-                    luisEntity.children.push(entitySubtype);
-                }
-            }
-
-            entitiesMap.set(entityType, luisEntity);
-        });
     }
 
-    private replaceRawEntityValues(sentence: string, entities: any[]) {
-        let plainSentence = sentence;
-
-        entities.forEach((entity) => {
-            plainSentence = plainSentence.replace(`[${entity.entityValue}:${entity.entityType}]`, entity.entityValue);
-        });
-
-        return plainSentence;
-    }
-
-    private buildUtterance(sentence: string, intent: string, entities: any[]) {
-        // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
+    private normalizeSentence(sentence: string) {
+         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
         // ^\w\u00C0-\u017F means a not word, including accented chars (see http://stackoverflow.com/a/11550799/12388)
         let normalizedSentence = sentence.replace(/[^\w\u00C0-\u017F|_|\.]/g, capture => ' ' + capture + ' ');
 
-        // omit non-word exceptions not handled by microsoft ('º' and 'ª')
+         // omit non-word exceptions not handled by microsoft ('º' and 'ª')
         normalizedSentence = normalizedSentence.replace(' º ', 'º');
         normalizedSentence = normalizedSentence.replace(' ª ', 'ª');
 
@@ -157,38 +157,46 @@ export class LanguageModelParser {
         normalizedSentence = normalizedSentence.replace(/\s\s+/g, ' ');
         normalizedSentence = normalizedSentence.trim();
 
-        let utterance: Luis.Utterance = {
-            text: normalizedSentence,
-            intent,
-            entities: []
-        };
-
-        let from = 0;
-        entities.forEach(entity => {
-            let startPos = this.findWordPosition(entity.entityValue, normalizedSentence, from);
-            let endPos = startPos + entity.entityValue.split(/\s/).length - 1;
-
-            from = startPos + 1;
-
-            utterance.entities.push({
-                entity: entity.entityType,
-                startPos,
-                endPos
-            });
-        });
-
-        return utterance;
+        return normalizedSentence;
     }
 
-    private findWordPosition(word: string, sentence: string, from: number = 0): number {
-        let tokens = sentence.split(/\s/).splice(from);
+    private buildUtterance(sentence: string, intent: string) {
 
-        // TODO This is an approximation.
-        //      It do not cover cases where the entity appears in the sentence
-        //      ex. "Santiago went to [Santiago Bernabeu:place]"
-        let firstWord = word.split(/\s/)[0];
-        let position = tokens.indexOf(firstWord) + from;
+        let entities: any[] = [];
+        let parts: string[] = [];
 
-        return position;
+        sentence
+            .trim()
+            // split by entities:
+            // "Santiago Bernabeu went to [Santiago Bernabeu:place]." will split in 
+            // [ "Santiago Bernabeu went to", "[Santiago Bernabeu:place]", "." ]
+            .split(/(\[.+?:.+?\])/g)
+            .forEach(part => {
+                let extractedEntities = this.extractEntities(part);
+                if (extractedEntities.length) {
+                    extractedEntities.forEach(entity => {
+                        let startPos = parts.length;
+                        let newWords = this.normalizeSentence(entity.entityValue).split(' ');
+                        parts = parts.concat(newWords);
+                        let endPos = parts.length - 1;
+                        entities.push({
+                            entity: entity.entityType,
+                            startPos,
+                            endPos
+                        });
+                    });
+                } else {
+                    let newWords = this.normalizeSentence(part).split(' ');
+                    parts = parts.concat(newWords);
+                }
+            });
+
+        let utterance: Luis.Utterance = {
+            text: parts.join(' ').trim(),
+            intent,
+            entities: entities
+        };
+
+        return utterance;
     }
 }
