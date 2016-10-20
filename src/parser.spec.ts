@@ -147,6 +147,36 @@ describe('Language Model Converter', () => {
                 'text': 'This is the country France',
                 'intent': 'my.test.expansion',
                 'entities': [ ]
+            },
+            {
+                'text': 'This is the color Red',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'This is the color Blue',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'This is the Red Spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'This is the Blue Spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'This is the Red France',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'This is the Blue France',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
             }
         ];
 

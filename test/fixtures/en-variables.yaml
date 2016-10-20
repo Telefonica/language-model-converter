@@ -2,8 +2,14 @@ list.${country}:
   - Spain
   - France
 
+list.${colors}:
+  - Red
+  - Blue
+
 my.test.intent:
   - This is the country [${country}:country]
 
 my.test.expansion:
   - This is the country ${country}
+  - This is the color ${colors}
+  - This is the ${colors} ${country}

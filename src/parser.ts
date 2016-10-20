@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import * as _ from 'lodash';
 
 import { Luis } from './luis-model';
 
@@ -82,17 +81,15 @@ export class LanguageModelParser {
         expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
                 values.forEach(value => {
-                    let newSentence: string;
-                    try {
-                        newSentence = _.template(sentence)({[key]: value});
-                    } catch (err) {
-                        throw new Error(`Only one variable is allowed in sentence "${sentence}"`);
-                    }
-                    if (newSentence !== sentence) {
-                        expandedSentences.add(newSentence);
-                        expandedSentences.delete(sentence);
-                    } else {
-                        expandedSentences.add(sentence);
+                    let search = '${'+ key +'}';
+                    if (sentence.indexOf(search) !== -1 ){
+                        let newSentence = sentence.replace(search, value);
+                        if (newSentence !== sentence) {
+                            expandedSentences.add(newSentence);
+                            expandedSentences.delete(sentence);
+                        } else {
+                            expandedSentences.add(sentence);
+                        }
                     }
                 });
             });
