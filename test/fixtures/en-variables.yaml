@@ -13,3 +13,4 @@ my.test.expansion:
   - This is the country ${country}
   - This is the color ${colors}
   - This is the ${colors} ${country}
+  - This is the ${country} ${country}

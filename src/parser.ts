@@ -4,10 +4,13 @@ import * as yaml from 'js-yaml';
 
 import { Luis } from './luis-model';
 
+export type culture = 'en-us' | 'es-es';
+
 export class LanguageModelParser {
     private doc: any = {};
+    public culture: culture;
 
-    parse(files: string[], culture: string): Luis.Model {
+    parse(files: string[], culture: culture): Luis.Model {
         try {
             files.forEach(file => {
                 // XXX Conflicting keys not supported. Multiple files could be merged together.
@@ -17,6 +20,8 @@ export class LanguageModelParser {
         } catch (err) {
             throw new Error('Not able to parse language model: ' + err);
         }
+
+        this.culture = culture;
 
         let luisModel: Luis.Model = {
             luis_schema_version: '1.3.0',
@@ -81,8 +86,8 @@ export class LanguageModelParser {
         expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
                 values.forEach(value => {
-                    let search = '${'+ key +'}';
-                    if (sentence.indexOf(search) !== -1 ){
+                    let search = '${' + key + '}';
+                    if (sentence.indexOf(search) !== -1 ) {
                         let newSentence = sentence.replace(search, value);
                         if (newSentence !== sentence) {
                             expandedSentences.add(newSentence);
@@ -141,41 +146,60 @@ export class LanguageModelParser {
 
     }
 
-    private normalizeSentence(sentence: string) {
-         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
-        // ^\w\u00C0-\u017F means a not word, including accented chars (see http://stackoverflow.com/a/11550799/12388)
-        let normalizedSentence = sentence.replace(/[^\w\u00C0-\u017F|_|\.]/g, capture => ' ' + capture + ' ');
+    private normalizeSentence(sentence: string): string {
+        let normalized = sentence
+            // replace multiple spaces with a single one
+            .replace(/\s\s+/g, ' ')
+            .trim();
 
-         // omit non-word exceptions not handled by microsoft ('º' and 'ª')
-        normalizedSentence = normalizedSentence.replace(' º ', 'º');
-        normalizedSentence = normalizedSentence.replace(' ª ', 'ª');
+        switch (this.culture) {
+            case 'en-us':
+                // in an en-us luis app, nothing but ASCII 7 chars are lowercased
+                // see test/fixtures/{en-es}-cornercases.yaml
+                normalized = normalized.replace(/[A-Z]/g, capture => capture.toLowerCase());
+                break;
+            default:
+                normalized = normalized.toLocaleLowerCase();
+        }
 
-        // replace multiple spaces with a single one and trim
-        normalizedSentence = normalizedSentence.replace(/\s\s+/g, ' ');
-        normalizedSentence = normalizedSentence.trim();
+        return normalized;
+    }
 
-        return normalizedSentence;
+    private static wordCount(sentence: string): number {
+        // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
+        return sentence
+            // ^\w\u00C0-\u017F means a not word, including accented chars
+            // (see http://stackoverflow.com/a/11550799/12388)
+            .replace(/[^\w\u00C0-\u017F]/g, capture => ` ${capture} `)
+            .replace(/_/g, capture => ` ${capture} `)
+            // omit non-word exceptions not handled by microsoft ('º' and 'ª')
+            .replace(' º ', 'º')
+            .replace(' ª ', 'ª')
+            // replace multiple spaces with a single one
+            .replace(/\s\s+/g, ' ')
+            .trim()
+            .split(' ')
+            .length;
     }
 
     private buildUtterance(sentence: string, intent: string) {
 
         let entities: any[] = [];
-        let parts: string[] = [];
+        let parts: string = '';
 
         sentence
             .trim()
             // split by entities:
-            // "Santiago Bernabeu went to [Santiago Bernabeu:place]." will split in 
-            // [ "Santiago Bernabeu went to", "[Santiago Bernabeu:place]", "." ]
+            // "Santiago Bernabeu went to [Santiago Bernabeu:place]." will split in
+            // [ "Santiago Bernabeu went to ", "[Santiago Bernabeu:place]", "." ]
             .split(/(\[.+?:.+?\])/g)
             .forEach(part => {
                 let extractedEntities = this.extractEntities(part);
                 if (extractedEntities.length) {
                     extractedEntities.forEach(entity => {
-                        let startPos = parts.length;
-                        let newWords = this.normalizeSentence(entity.entityValue).split(' ');
-                        parts = parts.concat(newWords);
-                        let endPos = parts.length - 1;
+                        let startPos = LanguageModelParser.wordCount(parts);
+                        parts += entity.entityValue;
+                        let endPos = LanguageModelParser.wordCount(parts) - 1;
                         entities.push({
                             entity: entity.entityType,
                             startPos,
@@ -183,13 +207,12 @@ export class LanguageModelParser {
                         });
                     });
                 } else {
-                    let newWords = this.normalizeSentence(part).split(' ');
-                    parts = parts.concat(newWords);
+                    parts += part;
                 }
             });
 
         let utterance: Luis.Utterance = {
-            text: parts.join(' ').trim(),
+            text: this.normalizeSentence(parts),
             intent,
             entities: entities
         };
