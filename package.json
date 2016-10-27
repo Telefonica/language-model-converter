@@ -1,6 +1,6 @@
 {
   "name": "@telefonica/language-model-converter",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Language model converter for yot-bot",
   "license": "UNLICENSED",
   "repository": "https://github.com/Telefonica/yot-bot/tree/master/language-model-converter",

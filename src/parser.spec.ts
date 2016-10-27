@@ -217,6 +217,12 @@ describe('Language Model Converter', () => {
                 words: `hola - caracola,Hola _ caracola,I ' d like,2º floor,Que tAl`,
                 activated: true,
                 mode: true
+            },
+            {
+                name: 'numbers',
+                words: `123,123 123`,
+                activated: true,
+                mode: true
             }
         ]
 

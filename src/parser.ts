@@ -183,7 +183,7 @@ export class LanguageModelParser {
 
     private tokenize(sentence:string): string[] {
         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
-        return sentence
+        return String(sentence)
             // ^\w\u00C0-\u017F means a not word, including accented chars
             // (see http://stackoverflow.com/a/11550799/12388)
             .replace(/[^\w\u00C0-\u017F]/g, capture => ` ${capture} `)
