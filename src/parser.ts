@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as _ from 'lodash';
 
 import { Luis } from './luis-model';
 
@@ -20,7 +21,6 @@ export class LanguageModelParser {
         } catch (err) {
             throw new Error('Not able to parse language model: ' + err);
         }
-
         this.culture = culture;
 
         let luisModel: Luis.Model = {
@@ -40,7 +40,9 @@ export class LanguageModelParser {
 
         let keys = Object.keys(this.doc);
 
-        let intentNames = keys.filter(intentName => !intentName.startsWith('list.'))
+        let intentNames = keys
+            .filter(intentName => !intentName.startsWith('list.'))
+            .filter(intentName => !intentName.startsWith('phraselist'))
             // remove the lists: lines starting by "list." that are not intents
             .map(intentName => {
                 if (intentName.length > 50) {
@@ -49,10 +51,10 @@ export class LanguageModelParser {
                 return intentName;
             });
 
-        let synonyms = new Map<string, string[]>();
+        let replacements = new Map<string, string[]>();
         keys.filter(intentName => intentName.startsWith('list.'))
             .forEach(intentName => {
-                synonyms.set(
+                replacements.set(
                     intentName.slice('list.${'.length, -1),
                     this.doc[intentName]
                 );
@@ -63,31 +65,34 @@ export class LanguageModelParser {
         let utterances = new Set<Luis.Utterance>();
 
         intentNames.forEach(intent => {
-                let sentences = this.doc[intent];
+            let sentences = this.doc[intent];
 
-                sentences
-                    .map((sentence: string) => this.expandVariables(sentence, synonyms))
-                    .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
-                    .forEach((sentence: string) => {
-                        let utterance = this.buildUtterance(sentence, intent);
-                        utterance.entities.forEach(entity => this.registerEntity(entity, entitiesMap));
-                        utterances.add(utterance);
-                    });
+            sentences
+                .map((sentence: string) => this.expandVariables(sentence, replacements))
+                .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
+                .forEach((sentence: string) => {
+                    let utterance = this.buildUtterance(sentence, intent);
+                    utterance.entities.forEach(entity => this.registerEntity(entity, entitiesMap));
+                    utterances.add(utterance);
+                });
         });
 
+        let features = _.toPairs(this.doc.phraselist)
+            .map(value => {
+                let name = String(value[0]);
+                let words: string[] = value[1].words || {};
+                return { 
+                    activated: true, // TODO: hardcoded
+                    mode: true, // TODO: hardcoded
+                    name: name,
+                    words: words.map(word => this.tokenize(word).join(' ')).join(',')
+                } as Luis.ModelFeature;
+            });
+    
         luisModel.utterances = Array.from(utterances.values());
         luisModel.entities = Array.from(entitiesMap.values());
         luisModel.intents = intentNames.map(intent => <Luis.Intent>{ name: intent });
-        luisModel.model_features = Array.from(synonyms.entries()).map(entry => {
-            let name = entry[0];
-            let words = entry[1];
-            return {
-                name,
-                words: words.map(word => this.tokenize(word).join(' ')).join(','),
-                mode: true,
-                activated: true
-            } as Luis.ModelFeature;
-        });
+        luisModel.model_features = features;
 
         return luisModel;
     }
@@ -96,11 +101,10 @@ export class LanguageModelParser {
         let expandedSentences = new Set([sentence]);
          expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
-                // values.forEach(value => {
+                values.forEach(value => {
                     let search = '${' + key + '}';
                     if (sentence.indexOf(search) !== -1 ) {
-                        //let newSentence = sentence.replace(search, value);
-                        let newSentence = sentence.replace(search, values[0]);
+                        let newSentence = sentence.replace(search, value);
                         if (newSentence !== sentence) {
                             expandedSentences.add(newSentence);
                             expandedSentences.delete(sentence);
@@ -108,7 +112,7 @@ export class LanguageModelParser {
                             expandedSentences.add(sentence);
                         }
                     }
-                //});
+                });
             });
         }); 
         

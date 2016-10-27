@@ -211,23 +211,7 @@ describe('Language Model Converter', () => {
             }
         ];
 
-        let expectedModelFeatures = [
-            {
-                name: 'strange',
-                words: `hola - caracola,Hola _ caracola,I ' d like,2º floor,Que tAl`,
-                activated: true,
-                mode: true
-            },
-            {
-                name: 'numbers',
-                words: `123,123 123`,
-                activated: true,
-                mode: true
-            }
-        ]
-
         expect(luisModel.utterances).to.eql(expectedUtterances);
-        expect(luisModel.model_features).to.eql(expectedModelFeatures);
     });
 
     it('should deal with locale specifities', function() {
@@ -266,7 +250,23 @@ describe('Language Model Converter', () => {
                 ]
             },
             {
+                'text': 'this is the country france',
+                'intent': 'my.test.intent',
+                'entities': [
+                    {
+                        'entity': 'country',
+                        'startPos': 4,
+                        'endPos': 4
+                    }
+                ]
+            },
+            {
                 'text': 'this is the country spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'this is the country france',
                 'intent': 'my.test.expansion',
                 'entities': [ ]
             },
@@ -276,7 +276,27 @@ describe('Language Model Converter', () => {
                 'entities': [ ]
             },
             {
+                'text': 'this is the color blue',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
                 'text': 'this is the red spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'this is the blue spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'this is the red france',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'this is the blue france',
                 'intent': 'my.test.expansion',
                 'entities': [ ]
             },
@@ -284,25 +304,47 @@ describe('Language Model Converter', () => {
                 'text': 'this is the spain spain',
                 'intent': 'my.test.expansion',
                 'entities': [ ]
-            }
-        ];
-
-        let expectedModelFeatures = [
-            {
-                name: 'country',
-                words: 'Spain,France',
-                mode: true,
-                activated: true 
             },
             {
-                name: 'colors',
-                words: 'Red,Blue',
-                mode: true,
-                activated: true 
+                'text': 'this is the spain france',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'this is the france spain',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
+            },
+            {
+                'text': 'this is the france france',
+                'intent': 'my.test.expansion',
+                'entities': [ ]
             }
         ];
 
         expect(luisModel.utterances).to.eql(expectedUtterances);
+    });
+
+    it('should parse phraselists', function() {
+        let parser = new LanguageModelParser();
+        let luisModel = parser.parse(['./test/fixtures/en-features.yaml'], 'en-us');
+
+        let expectedModelFeatures = [
+            {
+                name: 'strange',
+                words: `hola - caracola,Hola _ caracola,I ' d like,2º floor,Que tAl`,
+                activated: true,
+                mode: true
+            },
+            {
+                name: 'numbers',
+                words: `123,123 123`,
+                activated: true,
+                mode: true
+            }
+        ]
+
         expect(luisModel.model_features).to.eql(expectedModelFeatures);
+
     });
 });

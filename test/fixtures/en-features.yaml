@@ -1,0 +1,14 @@
+phraselist:
+  strange: 
+    words: 
+      - hola-caracola
+      - Hola_caracola
+      - I'd like
+      - 2º floor
+      - Que tAl
+
+  numbers:
+    words: 
+      - 123
+      - 123 123
+

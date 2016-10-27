@@ -9,19 +9,39 @@ Words preceed by `#` are comments, and its purpose is to leave some insights to 
 
 ```yaml
 
-list.${example}:  # Defines a example list to make substitutions in the utterances
+list.${examples}:  # Defines a example list to make substitutions in the utterances
   - heaven
   - hell
   
 tef.intent.info: # Defines a Luis Intent
   - Tell me about the purgatory # Simple utterance
-  - What is ${example} # Substitution with list: Will generate for you "What is heaven" and "What is hell"
+  - What is ${examples} # Substitution with list: Will generate for you "What is heaven" and "What is hell"
 
 tef.intent.go: # Defines a Luis Intent
   - Go to [purgatory:tef.places] # Defines an entity "tef.places" giving "purgatory" as an example. The example is mandatory
-  - Head to [${example}:tef.places] # You can make substitution in the entity examples too!
+  - Head to [${examples}:tef.places] # You can make substitution in the entity examples too!
+  
+phraselist:
+  aksforinfo: # ex: How to ask for something synonims: 
+    words: 
+      - Tell me about
+      - What is
 
+  tef.places: # ex: Place examples here for training entities
+    words: 
+      - heaven
+      - hell
+      - purgatory
+      - home
+      
 ```
+
+### Limitations
+As of writing this doc, the following limitations apply in LUIS Service
+ * Max of 20 intents (`tef.intent.info` + `tef.intent.go` = 2)
+ * Max of 50 chars for the intent name (`tef.intent.info` = 15)
+ * Max of 10 phraselists (`askforinfo` + `tef.places` = 2)
+ * Max of 10 entities ([something:`tef.places`]) _You can provide as much examples as you want for the entities_
 
 ## Usage examples
 
