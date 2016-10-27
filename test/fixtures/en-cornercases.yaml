@@ -1,3 +1,10 @@
+list.${strange}:
+  - hola-caracola
+  - Hola_caracola
+  - I'd like
+  - 2º floor
+  - Que tAl 
+
 my.test.intent.1:
   - Santiago went to the [Santiago Bernabeu:place].
   - I live in the 2ºC apartment in [Madrid:location].

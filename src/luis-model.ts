@@ -9,7 +9,7 @@ export namespace Luis {
         composites: any[];
         bing_entities: any[];
         actions: any[];
-        model_features: any[];
+        model_features: ModelFeature[];
         regex_features: any[];
         utterances: Utterance[];
     };
@@ -18,6 +18,13 @@ export namespace Luis {
         text: string;
         intent: string;
         entities: EntityPosition[];
+    };
+
+    export interface ModelFeature {
+        name: string;
+        mode: boolean;
+        words: string;
+        activated: boolean;
     };
 
     export interface EntityPosition {

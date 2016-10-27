@@ -40,9 +40,8 @@ export class LanguageModelParser {
 
         let keys = Object.keys(this.doc);
 
-        let intentNames = keys
+        let intentNames = keys.filter(intentName => !intentName.startsWith('list.'))
             // remove the lists: lines starting by "list." that are not intents
-            .filter(intentName => !intentName.startsWith('list.'))
             .map(intentName => {
                 if (intentName.length > 50) {
                     throw new Error(`Intent "${intentName}" should be less than 50 characters. was ${intentName.length}`);
@@ -50,45 +49,58 @@ export class LanguageModelParser {
                 return intentName;
             });
 
-        let list = new Map<string, string[]>();
-        keys
-            .filter(intentName => intentName.startsWith('list.'))
+        let synonyms = new Map<string, string[]>();
+        keys.filter(intentName => intentName.startsWith('list.'))
             .forEach(intentName => {
-                list.set(
+                synonyms.set(
                     intentName.slice('list.${'.length, -1),
                     this.doc[intentName]
                 );
             });
 
+        
         let entitiesMap = new Map<string, Luis.Entity>();
+        let utterances = new Set<Luis.Utterance>();
 
         intentNames.forEach(intent => {
                 let sentences = this.doc[intent];
 
                 sentences
-                    .map((sentence: string) => this.expandVariables(sentence, list))
+                    .map((sentence: string) => this.expandVariables(sentence, synonyms))
                     .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
                     .forEach((sentence: string) => {
                         let utterance = this.buildUtterance(sentence, intent);
                         utterance.entities.forEach(entity => this.registerEntity(entity, entitiesMap));
-                        luisModel.utterances.push(utterance);
+                        utterances.add(utterance);
                     });
         });
 
+        luisModel.utterances = Array.from(utterances.values());
         luisModel.entities = Array.from(entitiesMap.values());
-        luisModel.intents = intentNames.map(intent => <Luis.Intent>{name: intent});
+        luisModel.intents = intentNames.map(intent => <Luis.Intent>{ name: intent });
+        luisModel.model_features = Array.from(synonyms.entries()).map(entry => {
+            let name = entry[0];
+            let words = entry[1];
+            return {
+                name,
+                words: words.map(word => this.tokenize(word).join(' ')).join(','),
+                mode: true,
+                activated: true
+            } as Luis.ModelFeature;
+        });
+
         return luisModel;
     }
 
     private expandVariables(sentence: string, variables: Map<string, string[]>): string[] {
         let expandedSentences = new Set([sentence]);
-
-        expandedSentences.forEach(sentence => {
+         expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
-                values.forEach(value => {
+                // values.forEach(value => {
                     let search = '${' + key + '}';
                     if (sentence.indexOf(search) !== -1 ) {
-                        let newSentence = sentence.replace(search, value);
+                        //let newSentence = sentence.replace(search, value);
+                        let newSentence = sentence.replace(search, values[0]);
                         if (newSentence !== sentence) {
                             expandedSentences.add(newSentence);
                             expandedSentences.delete(sentence);
@@ -96,10 +108,10 @@ export class LanguageModelParser {
                             expandedSentences.add(sentence);
                         }
                     }
-                });
+                //});
             });
-        });
-
+        }); 
+        
         return Array.from(expandedSentences);
     }
 
@@ -165,7 +177,11 @@ export class LanguageModelParser {
         return normalized;
     }
 
-    private static wordCount(sentence: string): number {
+    private wordCount(sentence: string): number {
+        return this.tokenize(sentence).length;
+    }
+
+    private tokenize(sentence:string): string[] {
         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
         return sentence
             // ^\w\u00C0-\u017F means a not word, including accented chars
@@ -178,8 +194,7 @@ export class LanguageModelParser {
             // replace multiple spaces with a single one
             .replace(/\s\s+/g, ' ')
             .trim()
-            .split(' ')
-            .length;
+            .split(' ');
     }
 
     private buildUtterance(sentence: string, intent: string) {
@@ -197,9 +212,9 @@ export class LanguageModelParser {
                 let extractedEntities = this.extractEntities(part);
                 if (extractedEntities.length) {
                     extractedEntities.forEach(entity => {
-                        let startPos = LanguageModelParser.wordCount(parts);
+                        let startPos = this.wordCount(parts);
                         parts += entity.entityValue;
-                        let endPos = LanguageModelParser.wordCount(parts) - 1;
+                        let endPos = this.wordCount(parts) - 1;
                         entities.push({
                             entity: entity.entityType,
                             startPos,
