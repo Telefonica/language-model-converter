@@ -1,0 +1,11 @@
+builtin:
+  - age
+  - datetime
+  - dimension
+  - encyclopedia
+  - geography
+  - money
+  - number
+  - ordinal
+  - percentage
+  - temperature

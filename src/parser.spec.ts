@@ -342,9 +342,30 @@ describe('Language Model Converter', () => {
                 activated: true,
                 mode: true
             }
-        ]
+        ];
 
         expect(luisModel.model_features).to.eql(expectedModelFeatures);
 
+    });
+
+    it('should parse builtin', function() {
+        let parser = new LanguageModelParser();
+        let luisModel = parser.parse(['./test/fixtures/builtin.yaml'], 'en-us');
+
+        let expectedBingEntities = [
+            "age",
+            "datetime",
+            "dimension",
+            "encyclopedia",
+            "geography",
+            "money",
+            "number",
+            "ordinal",
+            "percentage",
+            "temperature"
+        ];
+
+        expect(luisModel.bing_entities).to.eql(expectedBingEntities);
+        
     });
 });

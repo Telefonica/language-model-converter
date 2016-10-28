@@ -33,7 +33,38 @@ phraselist:
       - hell
       - purgatory
       - home
-      
+
+builtin: # LUIS builtin entities that should be used
+  - age
+  - datetime
+  - dimension
+  - encyclopedia
+  - geography
+  - money
+  - number
+  - ordinal
+  - percentage
+  - temperature
+```
+
+The list of **builtin** entities can be found in the [LUIS Help](https://www.luis.ai/Help#PreBuiltEntities) and/or the [Cognitive Services Help](https://www.microsoft.com/cognitive-services/en-us/luis-api/documentation/pre-builtentities) 
+Please, read carefully about what entities are available for the target language you are writting utterances to, as 
+> Unless otherwise noted, each pre-built entity is available in all LUIS application locales (cultures).
+
+_Note: maybe the doc page [is not actualized with all the entities](https://github.com/Microsoft/Cognitive-Documentation/issues/96)_ 
+
+You dont need to declare with brackets the builtin entities. They are recognized by default on LUIS. I.E:
+```yaml
+# DONT DO THIS
+tef.intent.money:
+  - It's worth [$30:builtin.money]
+  
+# DO THIS
+builtin:
+  - money
+
+tef.intent.money:
+  - It's worth $30
 ```
 
 ### Limitations

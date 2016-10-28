@@ -43,6 +43,7 @@ export class LanguageModelParser {
         let intentNames = keys
             .filter(intentName => !intentName.startsWith('list.'))
             .filter(intentName => !intentName.startsWith('phraselist'))
+            .filter(intentName => !intentName.startsWith('builtin'))
             // remove the lists: lines starting by "list." that are not intents
             .map(intentName => {
                 if (intentName.length > 50) {
@@ -80,19 +81,27 @@ export class LanguageModelParser {
         let features = _.toPairs(this.doc.phraselist)
             .map(value => {
                 let name = String(value[0]);
-                let words: string[] = value[1].words || {};
+                let activated: boolean = value[1].activated == null ? true : value[1].activated;
+                let mode: boolean = value[1].mode == null ? true : value[1].mode;
+                let words = (value[1].words || [])
+                    .map((word:string) => this.tokenize(word).join(' '))
+                    .join(',');
+                
                 return { 
-                    activated: true, // TODO: hardcoded
-                    mode: true, // TODO: hardcoded
-                    name: name,
-                    words: words.map(word => this.tokenize(word).join(' ')).join(',')
+                    activated,
+                    mode, 
+                    name,
+                    words 
                 } as Luis.ModelFeature;
             });
     
+        let bingEntities = this.doc.builtin || [];
+
         luisModel.utterances = Array.from(utterances.values());
         luisModel.entities = Array.from(entitiesMap.values());
         luisModel.intents = intentNames.map(intent => <Luis.Intent>{ name: intent });
         luisModel.model_features = features;
+        luisModel.bing_entities = bingEntities;
 
         return luisModel;
     }
