@@ -61,7 +61,6 @@ export class LanguageModelParser {
                 );
             });
 
-        
         let entitiesMap = new Map<string, Luis.Entity>();
         let utterances = new Set<Luis.Utterance>();
 
@@ -86,15 +85,15 @@ export class LanguageModelParser {
                 let words = (value[1].words || [])
                     .map((word:string) => this.tokenize(word).join(' '))
                     .join(',');
-                
-                return { 
+
+                return {
                     activated,
-                    mode, 
+                    mode,
                     name,
-                    words 
+                    words
                 } as Luis.ModelFeature;
             });
-    
+
         let bingEntities = this.doc.builtin || [];
 
         luisModel.utterances = Array.from(utterances.values());
@@ -123,8 +122,8 @@ export class LanguageModelParser {
                     }
                 });
             });
-        }); 
-        
+        });
+
         return Array.from(expandedSentences);
     }
 
