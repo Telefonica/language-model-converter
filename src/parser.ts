@@ -16,7 +16,7 @@ export class LanguageModelParser {
             files.forEach(file => {
                 // XXX Conflicting keys not supported. Multiple files could be merged together.
                 let yamlFileContents = fs.readFileSync(file, 'utf8');
-                Object.assign(this.doc, yaml.safeLoad(yamlFileContents));
+                mergeDeep(this.doc, yaml.safeLoad(yamlFileContents));
             });
         } catch (err) {
             throw new Error('Not able to parse language model: ' + err);
@@ -83,7 +83,13 @@ export class LanguageModelParser {
                 let activated: boolean = value[1].activated == null ? true : value[1].activated;
                 let mode: boolean = value[1].mode == null ? true : value[1].mode;
                 let words = (value[1].words || [])
-                    .map((word:string) => this.tokenize(word).join(' '))
+                    .map((word: any) => {
+                        let strword = String(word);
+                        if (strword.indexOf(',') !== -1) {
+                            throw new Error(`Prashe list "${name}" can not contain commas ('${strword}')`);
+                        }
+                        return this.tokenize(strword).join(' ');
+                    })
                     .join(',');
 
                 return {
@@ -111,7 +117,7 @@ export class LanguageModelParser {
             variables.forEach((values, key) => {
                 values.forEach(value => {
                     let search = '${' + key + '}';
-                    if (sentence.indexOf(search) !== -1 ) {
+                    if (sentence.indexOf(search) !== -1) {
                         let newSentence = sentence.replace(search, value);
                         if (newSentence !== sentence) {
                             expandedSentences.add(newSentence);
@@ -151,7 +157,7 @@ export class LanguageModelParser {
         let entitySubtype: string;
 
         let composedEntitySeparatorPosition = entityType.indexOf('::');
-        if (composedEntitySeparatorPosition >= 0) {
+        if (composedEntitySeparatorPosition !== -1) {
             entitySubtype = entityType.substring(composedEntitySeparatorPosition + '::'.length);
             entityType = entityType.substring(0, composedEntitySeparatorPosition);
         }
@@ -167,7 +173,6 @@ export class LanguageModelParser {
         }
 
         entitiesMap.set(entityType, luisEntity);
-
     }
 
     private normalizeSentence(sentence: string): string {
@@ -193,7 +198,7 @@ export class LanguageModelParser {
         return this.tokenize(sentence).length;
     }
 
-    private tokenize(sentence:string): string[] {
+    private tokenize(sentence: string): string[] {
         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
         return String(sentence)
             // ^\w\u00C0-\u017F means a not word, including accented chars
@@ -210,9 +215,8 @@ export class LanguageModelParser {
     }
 
     private buildUtterance(sentence: string, intent: string) {
-
         let entities: any[] = [];
-        let parts: string = '';
+        let parts = '';
 
         sentence
             .trim()
@@ -246,4 +250,36 @@ export class LanguageModelParser {
 
         return utterance;
     }
+}
+
+/**
+ * http://stackoverflow.com/a/34749873/12388
+ * Simple is object check.
+ * @param item
+ * @returns {boolean}
+ */
+function isObject(item: any) {
+     return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+/**
+ * http://stackoverflow.com/a/34749873/12388
+ * Deep merge two objects.
+ * @param target
+ * @param source
+ */
+function mergeDeep(target: any, source: any) {
+    if (isObject(target) && isObject(source)) {
+        for (const key in source) {
+        if (isObject(source[key])) {
+            if (!target[key]) {
+                Object.assign(target, { [key]: {} });
+            }
+            mergeDeep(target[key], source[key]);
+        } else {
+            Object.assign(target, { [key]: source[key] });
+        }
+        }
+    }
+    return target;
 }

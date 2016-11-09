@@ -85,127 +85,127 @@ describe('Language Model Converter', () => {
 
         let expectedUtterances = [
             {
-                'text': 'santiago went to the santiago bernabeu.',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'santiago went to the santiago bernabeu.',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'place',
-                        'startPos': 4,
-                        'endPos': 5
+                        entity: 'place',
+                        startPos: 4,
+                        endPos: 5
                     }
                 ]
             },
             {
-                'text': 'i live in the 2ºc apartment in madrid.',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'i live in the 2ºc apartment in madrid.',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 7,
-                        'endPos': 7
+                        entity: 'location',
+                        startPos: 7,
+                        endPos: 7
                     }
                 ]
             },
             {
-                'text': `i don't like paris`,
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: `i don't like paris`,
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 5,
-                        'endPos': 5
+                        entity: 'location',
+                        startPos: 5,
+                        endPos: 5
                     }
                 ]
             },
             {
-                'text': `i've 123 friends. in paris`,
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: `i've 123 friends. in paris`,
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 7,
-                        'endPos': 7
+                        entity: 'location',
+                        startPos: 7,
+                        endPos: 7
                     }
                 ]
             },
             {
-                'text': `i'd like to go to o'brian and l.a.`,
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: `i'd like to go to o'brian and l.a.`,
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 7,
-                        'endPos': 9
+                        entity: 'location',
+                        startPos: 7,
+                        endPos: 9
                     },
                     {
-                        'entity': 'location',
-                        'startPos': 11,
-                        'endPos': 14
+                        entity: 'location',
+                        startPos: 11,
+                        endPos: 14
                     }
                 ]
             },
             {
-                'text': 'i _love_ paris and great_britain.',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'i _love_ paris and great_britain.',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 4,
-                        'endPos': 4
+                        entity: 'location',
+                        startPos: 4,
+                        endPos: 4
                     },
                     {
-                        'entity': 'location',
-                        'startPos': 6,
-                        'endPos': 8
+                        entity: 'location',
+                        startPos: 6,
+                        endPos: 8
                     }
                 ]
             },
             {
-                'text': 'the best city in-the-world is new-york',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'the best city in-the-world is new-york',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 9,
-                        'endPos': 11
+                        entity: 'location',
+                        startPos: 9,
+                        endPos: 11
                     }
                 ]
             },
             {
-                'text': 'i love open spaces , like the one in bei jing and london',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'i love open spaces , like the one in bei jing and london',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 9,
-                        'endPos': 10
+                        entity: 'location',
+                        startPos: 9,
+                        endPos: 10
                     },
                     {
-                        'entity': 'location',
-                        'startPos': 12,
-                        'endPos': 12
+                        entity: 'location',
+                        startPos: 12,
+                        endPos: 12
                     }
                 ]
             },
             {
-                'text': `symbols everywhere! ºª\\!|"@·#$%&¬/()=?¿'¡^\`<>,;.:-_¨*+ london`,
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: `symbols everywhere! ºª\\!|"@·#$%&¬/()=?¿'¡^\`<>,;.:-_¨*+ london`,
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 36,
-                        'endPos': 36
+                        entity: 'location',
+                        startPos: 36,
+                        endPos: 36
                     }
                 ]
             },
             {
-                'text': 'Çç vayÁ cÓn Úna eÑes en Éspaña no son gÜenas nÍ cigüenas en parÍs',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'Çç vayÁ cÓn Úna eÑes en Éspaña no son gÜenas nÍ cigüenas en parÍs',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 13,
-                        'endPos': 13
+                        entity: 'location',
+                        startPos: 13,
+                        endPos: 13
                     }
                 ]
             }
@@ -219,13 +219,13 @@ describe('Language Model Converter', () => {
         let luisModel = parser.parse(['./test/fixtures/es-cornercases.yaml'], 'es-es');
         let expectedUtterances = [
             {
-                'text': 'çç vayá cón úna eñes en éspaña no son güenas ní cigüenas en parís',
-                'intent': 'my.test.intent.1',
-                'entities': [
+                text: 'çç vayá cón úna eñes en éspaña no son güenas ní cigüenas en parís',
+                intent: 'my.test.intent.1',
+                entities: [
                     {
-                        'entity': 'location',
-                        'startPos': 13,
-                        'endPos': 13
+                        entity: 'location',
+                        startPos: 13,
+                        endPos: 13
                     }
                 ]
             }
@@ -239,86 +239,86 @@ describe('Language Model Converter', () => {
 
         let expectedUtterances = [
             {
-                'text': 'this is the country spain',
-                'intent': 'my.test.intent',
-                'entities': [
+                text: 'this is the country spain',
+                intent: 'my.test.intent',
+                entities: [
                     {
-                        'entity': 'country',
-                        'startPos': 4,
-                        'endPos': 4
+                        entity: 'country',
+                        startPos: 4,
+                        endPos: 4
                     }
                 ]
             },
             {
-                'text': 'this is the country france',
-                'intent': 'my.test.intent',
-                'entities': [
+                text: 'this is the country france',
+                intent: 'my.test.intent',
+                entities: [
                     {
-                        'entity': 'country',
-                        'startPos': 4,
-                        'endPos': 4
+                        entity: 'country',
+                        startPos: 4,
+                        endPos: 4
                     }
                 ]
             },
             {
-                'text': 'this is the country spain',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the country spain',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the country france',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the country france',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the color red',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the color red',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the color blue',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the color blue',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the red spain',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the red spain',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the blue spain',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the blue spain',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the red france',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the red france',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the blue france',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the blue france',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the spain spain',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the spain spain',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the spain france',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the spain france',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the france spain',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the france spain',
+                intent: 'my.test.expansion',
+                entities: [ ]
             },
             {
-                'text': 'this is the france france',
-                'intent': 'my.test.expansion',
-                'entities': [ ]
+                text: 'this is the france france',
+                intent: 'my.test.expansion',
+                entities: [ ]
             }
         ];
 
@@ -327,25 +327,34 @@ describe('Language Model Converter', () => {
 
     it('should parse phraselists', function() {
         let parser = new LanguageModelParser();
-        let luisModel = parser.parse(['./test/fixtures/en-features.yaml'], 'en-us');
+        let yamls = [
+            './test/fixtures/en-features-1.yaml',
+            './test/fixtures/en-features-2.yaml'
+        ];
+        let luisModel = parser.parse(yamls, 'en-us');
 
         let expectedModelFeatures = [
             {
                 name: 'strange',
-                words: `hola - caracola,Hola _ caracola,I ' d like,2º floor,Que tAl`,
+                words: 'hola - caracola,Hola _ caracola,I \' d like,2º floor,Que tAl',
                 activated: true,
                 mode: true
             },
             {
                 name: 'numbers',
-                words: `123,123 123`,
+                words: '123,123 123',
+                activated: true,
+                mode: true
+            },
+            {
+                name: 'anotherlist',
+                words: 'Cercei,Walder Frey,Melisandre',
                 activated: true,
                 mode: true
             }
         ];
 
         expect(luisModel.model_features).to.eql(expectedModelFeatures);
-
     });
 
     it('should parse builtin', function() {
@@ -353,19 +362,19 @@ describe('Language Model Converter', () => {
         let luisModel = parser.parse(['./test/fixtures/builtin.yaml'], 'en-us');
 
         let expectedBingEntities = [
-            "age",
-            "datetime",
-            "dimension",
-            "encyclopedia",
-            "geography",
-            "money",
-            "number",
-            "ordinal",
-            "percentage",
-            "temperature"
+            'age',
+            'datetime',
+            'dimension',
+            'encyclopedia',
+            'geography',
+            'money',
+            'number',
+            'ordinal',
+            'percentage',
+            'temperature'
         ];
 
         expect(luisModel.bing_entities).to.eql(expectedBingEntities);
-        
+
     });
 });
