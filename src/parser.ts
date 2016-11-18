@@ -12,15 +12,16 @@ export class LanguageModelParser {
     public culture: culture;
 
     parse(files: string[], culture: culture): Luis.Model {
-        try {
-            files.forEach(file => {
-                // XXX Conflicting keys not supported. Multiple files could be merged together.
+        files.forEach(file => {
+            // XXX Conflicting keys not supported. Multiple files could be merged together.
+            try {
                 let yamlFileContents = fs.readFileSync(file, 'utf8');
                 mergeDeep(this.doc, yaml.safeLoad(yamlFileContents));
-            });
-        } catch (err) {
-            throw new Error('Not able to parse language model: ' + err);
-        }
+            } catch (err) {
+                throw new Error('File "' + file + '": ' + err.message);
+            }
+        });
+
         this.culture = culture;
 
         let luisModel: Luis.Model = {
