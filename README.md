@@ -1,6 +1,6 @@
 # language-model-converter
 
-This is a tool to convert language files defined in yaml language model into the (LUIS)(http://luis.ai) internal JSON representation.
+This is a tool to convert language files defined in yaml language model into the [LUIS](http://luis.ai) internal JSON representation.
 
 ### The language model
 This is a [yaml](http://www.yaml.org/) format file that is conveted to a [JSON file](https://dev.projectoxford.ai/docs/services/56d95961e597ed0f04b76e58/operations/56f8a55119845511c81de480) that LUIS can undestand
@@ -96,6 +96,6 @@ language-model-converter --help
       $ language-model-converter ./models/**/en*.yaml -c en-us   
 ```
 
-Notice that you can use [luis-cli](../luis-cli) to import or update the generated LUIS models.
+Notice that you can use [luis-cli](https://github.com/Telefonica/luis-cli) to import or update the generated LUIS models.
 
 
