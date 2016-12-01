@@ -1,20 +1,15 @@
 {
   "name": "@telefonica/language-model-converter",
   "version": "2.4.1",
-  "description": "Language model converter for yot-bot",
-  "license": "UNLICENSED",
+  "description": "Language model converter yaml <-> json for LUIS",
+  "license": "Apache-2.0",
   "repository": "https://github.com/Telefonica/yot-bot/tree/master/language-model-converter",
   "author": "TDAF <tdaf@tid.es>",
   "bin": {
     "language-model-converter": "./bin/language-model-converter"
   },
-  "files": [
-    "lib",
-    "bin"
-  ],
   "keywords": [
-    "luis",
-    "fourth platform"
+    "luis"
   ],
   "main": "lib/index.js",
   "scripts": {
