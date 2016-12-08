@@ -69,7 +69,7 @@ tef.intent.money:
 
 ### Limitations
 As of writing this doc, the following limitations apply in LUIS Service
- * Max of 20 intents (`tef.intent.info` + `tef.intent.go` = 2)
+ * Max of 40 intents (`tef.intent.info` + `tef.intent.go` = 2)
  * Max of 50 chars for the intent name (`tef.intent.info` = 15)
  * Max of 10 phraselists (`askforinfo` + `tef.places` = 2)
  * Max of 10 entities ([something:`tef.places`]) _You can provide as much examples as you want for the entities_
