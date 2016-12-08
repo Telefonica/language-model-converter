@@ -98,8 +98,8 @@ export class LanguageModelParser {
         let features = _.toPairs(this.doc.phraselist)
             .map(value => {
                 let name = String(value[0]);
-                let activated: boolean = value[1].activated == null ? true : value[1].activated;
-                let mode: boolean = value[1].mode == null ? true : value[1].mode;
+                let activated = value[1].activated == null ? true : value[1].activated;
+                let mode = value[1].mode == null ? true : value[1].mode;
                 let words = (value[1].words || [])
                     .map((word: any) => {
                         let strword = String(word);
@@ -217,8 +217,12 @@ export class LanguageModelParser {
     }
 
     private tokenize(sentence: string): string[] {
+        if (sentence === '') {
+            return [];
+        }
+
         // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
-        return String(sentence)
+        let tokenized = String(sentence)
             // ^\w\u00C0-\u017F means a not word, including accented chars
             // (see http://stackoverflow.com/a/11550799/12388)
             .replace(/[^\w\u00C0-\u017F]/g, capture => ` ${capture} `)
@@ -230,6 +234,8 @@ export class LanguageModelParser {
             .replace(/\s\s+/g, ' ')
             .trim()
             .split(' ');
+
+        return tokenized;
     }
 
     private buildUtterance(sentence: string, intent: string) {

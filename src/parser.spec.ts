@@ -319,6 +319,28 @@ describe('Language Model Converter', () => {
                 text: 'this is the france france',
                 intent: 'my.test.expansion',
                 entities: [ ]
+            },
+            {
+                text: 'spain',
+                intent: 'my.test.expansion',
+                entities: [
+                    {
+                        startPos: 0,
+                        endPos: 0,
+                        entity: 'country'
+                    }
+                ]
+            },
+            {
+                text: 'france',
+                intent: 'my.test.expansion',
+                entities: [
+                    {
+                        startPos: 0,
+                        endPos: 0,
+                        entity: 'country'
+                    }
+                ]
             }
         ];
 
