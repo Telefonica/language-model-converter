@@ -20,6 +20,7 @@ tef.intent.info: # Defines a Luis Intent
 tef.intent.go: # Defines a Luis Intent
   - Go to [purgatory:tef.places] # Defines an entity "tef.places" giving "purgatory" as an example. The example is mandatory
   - Head to [${examples}:tef.places] # You can make substitution in the entity examples too!
+  - We will go to [hell:tef.places] from [january 1:tef.date::start] until [december 31:tef.date::enf] # Hierarchical Entities are supported also 
   
 phraselist:
   aksforinfo: # ex: How to ask for something synonims: 
