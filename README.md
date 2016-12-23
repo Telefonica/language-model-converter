@@ -34,7 +34,14 @@ phraselist:
       - hell
       - purgatory
       - home
-
+  # if you want no have a not-exangeable phraselist, add the property `mode: false` to it. Example:
+  # tef.relations
+  #   mode: false
+  #   words:
+  #     - leader
+  #     - area
+  # more info: https://github.com/Microsoft/Cognitive-Documentation/issues/97#issuecomment-265738124
+  
 builtin: # LUIS builtin entities that should be used
   - age
   - datetime
