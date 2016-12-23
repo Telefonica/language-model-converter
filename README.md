@@ -74,6 +74,7 @@ As of writing this doc, the following limitations apply in LUIS Service
  * Max of 50 chars for the intent name (`tef.intent.info` = 15)
  * Max of 10 phraselists (`askforinfo` + `tef.places` = 2)
  * Max of 10 entities ([something:`tef.places`]) _You can provide as much examples as you want for the entities_
+ * Max of 10 children entities per parent ([something:`tef.date::start`])
 
 ## Usage examples
 
