@@ -11,7 +11,7 @@
   "keywords": [
     "luis"
   ],
-  "main": "lib/index.js",
+  "main": "lib/parser.js",
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "shx rm -fR ./lib",
@@ -51,5 +51,5 @@
   "engines": {
     "node": "~6.3.0"
   },
-  "typings": "./lib/index.d.ts"
+  "typings": "./lib/parser.d.ts"
 }
