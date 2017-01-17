@@ -12,7 +12,7 @@ Words preceed by `#` are comments, and its purpose is to leave some insights to 
 list.${examples}:  # Defines a example list to make substitutions in the utterances
   - heaven
   - hell
-  
+
 tef.intent.info: # Defines a Luis Intent
   - Tell me about the purgatory # Simple utterance
   - What is ${examples} # Substitution with list: Will generate for you "What is heaven" and "What is hell"
@@ -20,16 +20,16 @@ tef.intent.info: # Defines a Luis Intent
 tef.intent.go: # Defines a Luis Intent
   - Go to [purgatory:tef.places] # Defines an entity "tef.places" giving "purgatory" as an example. The example is mandatory
   - Head to [${examples}:tef.places] # You can make substitution in the entity examples too!
-  - We will go to [hell:tef.places] from [january 1:tef.date::start] until [december 31:tef.date::enf] # Hierarchical Entities are supported also 
-  
+  - We will go to [hell:tef.places] from [january 1:tef.date::start] until [december 31:tef.date::enf] # Hierarchical Entities are supported also
+
 phraselist:
-  aksforinfo: # ex: How to ask for something synonims: 
-    words: 
+  aksforinfo: # ex: How to ask for something synonims:
+    words:
       - Tell me about
       - What is
 
   tef.places: # ex: Place examples here for training entities
-    words: 
+    words:
       - heaven
       - hell
       - purgatory
@@ -41,7 +41,7 @@ phraselist:
   #     - leader
   #     - area
   # more info: https://github.com/Microsoft/Cognitive-Documentation/issues/97#issuecomment-265738124
-  
+
 builtin: # LUIS builtin entities that should be used
   - age
   - datetime
@@ -55,18 +55,18 @@ builtin: # LUIS builtin entities that should be used
   - temperature
 ```
 
-The list of **builtin** entities can be found in the [LUIS Help](https://www.luis.ai/Help#PreBuiltEntities) and/or the [Cognitive Services Help](https://www.microsoft.com/cognitive-services/en-us/luis-api/documentation/pre-builtentities) 
-Please, read carefully about what entities are available for the target language you are writting utterances to, as 
+The list of **builtin** entities can be found in the [LUIS Help](https://www.luis.ai/Help#PreBuiltEntities) and/or the [Cognitive Services Help](https://www.microsoft.com/cognitive-services/en-us/luis-api/documentation/pre-builtentities)
+Please, read carefully about what entities are available for the target language you are writting utterances to, as
 > Unless otherwise noted, each pre-built entity is available in all LUIS application locales (cultures).
 
-_Note: maybe the doc page [is not actualized with all the entities](https://github.com/Microsoft/Cognitive-Documentation/issues/96)_ 
+_Note: maybe the doc page [is not actualized with all the entities](https://github.com/Microsoft/Cognitive-Documentation/issues/96)_
 
 You dont need to declare with brackets the builtin entities. They are recognized by default on LUIS. I.E:
 ```yaml
 # DONT DO THIS
 tef.intent.money:
   - It's worth [$30:builtin.money]
-  
+
 # DO THIS
 builtin:
   - money
@@ -87,25 +87,41 @@ As of writing this doc, the following limitations apply in LUIS Service
 
 ```sh
 npm install -g @telefonica/language-model-converter
-language-model-converter --help 
+language-model-converter --help
 
-  Usage: language-model-converter [options] <files>                                                                                                                                       
-                                                                                                                                                                                          
-  Convert language files defined to LUIS format                                                                                                                                           
-                                                                                                                                                                                          
-  Options:                                                                                                                                                                                
-                                                                                                                                                                                          
-    -h, --help               output usage information                                                                                                                                     
-    -c, --culture <culture>  Culture code this files belongs to (ex. "en-us")                                                                                                             
-                                                                                                                                                                                          
-  Examples:                                                                                                                                                                               
-                                                                                                                                                                                          
-    Convert all files in 'models' and its subfolders, starting with 'en',                                                                                                                 
-    setting the locale to en-us                                                                                                                                                           
-      $ language-model-converter ./models/**/en*.yaml -c en-us   
+  Usage: language-model-converter [options] <files>
+
+  Convert language files defined to LUIS format
+
+  Options:
+
+    -h, --help               output usage information
+    -c, --culture <culture>  Culture code this files belongs to (ex. "en-us")
+
+  Examples:
+
+    Convert all files in 'models' and its subfolders, starting with 'en',
+    setting the locale to en-us
+      $ language-model-converter ./models/**/en*.yaml -c en-us
 ```
 
 Notice that you can use [luis-cli](https://github.com/Telefonica/luis-cli) to import or update the generated LUIS models.
+
+## USE IT PROGRAMMATICALLY
+You can also use this module from code:
+
+```typescript
+import { LanguageModelParser, culture } from '@telefonica/language-model-converter';
+
+let parser = new LanguageModelParser();
+let files = 'model.yaml';
+try {
+    let luisModel = parser.parse(files, 'en-us' as culture);
+    // Do something with the LUIS model
+} catch (err) {
+    // Manage errors
+}
+```
 
 ## LICENSE
 
