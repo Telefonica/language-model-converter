@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 
 import { LanguageModelParser } from './parser';
+import { Luis } from './luis-model';
 
 describe('Language Model Converter', () => {
     it('should parse a valid yaml file', () => {
@@ -399,4 +400,60 @@ describe('Language Model Converter', () => {
         expect(luisModel.bing_entities).to.eql(expectedBingEntities);
 
     });
+
+    it('should merge keys', function() {
+        let parser = new LanguageModelParser();
+        let yamls = [
+            './test/fixtures/en-merge-1.yaml',
+            './test/fixtures/en-merge-2.yaml'
+        ];
+        let luisModel = parser.parse(yamls, 'en-us');
+
+        let expectedModelFeatures = [
+            {
+                name: 'colors',
+                words: 'red,blue,white,yellow,green,black',
+                activated: true,
+                mode: true
+            }
+        ];
+
+        expect(luisModel.model_features).to.eql(expectedModelFeatures);
+    });
+
+    it('should merge values', function() {
+        let parser = new LanguageModelParser();
+        let yamls = [
+            './test/fixtures/en-merge-1.yaml',
+            './test/fixtures/en-merge-2.yaml',
+            './test/fixtures/en-merge-3.yaml'
+        ];
+        let luisModel = parser.parse(yamls, 'en-us');
+
+        let expectedUtterances = [
+            {
+                text: 'this is a test utterance 1',
+                intent: 'my.test.intent',
+                entities: [] as Luis.EntityPosition[]
+            },
+            {
+                text: 'this is a test utterance 2',
+                intent: 'my.test.intent',
+                entities: [] as Luis.EntityPosition[]
+            },
+            {
+                text: 'this is a test utterance 3',
+                intent: 'my.test.intent',
+                entities: [] as Luis.EntityPosition[]
+            },
+            {
+                text: 'this is a test utterance 4',
+                intent: 'my.test.intent',
+                entities: [] as Luis.EntityPosition[]
+            }
+        ];
+
+        expect(luisModel.utterances).to.eql(expectedUtterances);
+    });
+
 });

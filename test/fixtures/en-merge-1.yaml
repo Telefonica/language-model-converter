@@ -1,0 +1,10 @@
+phraselist:
+  colors:
+    words:
+      - red
+      - blue
+      - white
+
+my.test.intent:
+  - This is a test utterance 1
+  - This is a test utterance 2

@@ -295,14 +295,28 @@ function isObject(item: any) {
 function mergeDeep(target: any, source: any) {
     if (isObject(target) && isObject(source)) {
         for (const key in source) {
-        if (isObject(source[key])) {
-            if (!target[key]) {
-                Object.assign(target, { [key]: {} });
+            if (!source[key]) {
+                // Ignore empty values such as an intent key without examples
+                continue;
+            } else if (isObject(source[key])) {
+                if (!target[key]) {
+                    Object.assign(target, { [key]: {} });
+                }
+                if (!isObject(target[key])) {
+                    throw new Error(`Property ${key} already exist in target but it is not an object`);
+                }
+                mergeDeep(target[key], source[key]);
+            } else if (Array.isArray(source[key])) {
+                if (!target[key]) {
+                    Object.assign(target, { [key]: [] });
+                }
+                if (!Array.isArray(target[key])) {
+                    throw new Error(`Property ${key} already exist in target but it is not an array`);
+                }
+                target[key] = _.uniq(target[key].concat(source[key]));
+            } else {
+                Object.assign(target, { [key]: source[key] });
             }
-            mergeDeep(target[key], source[key]);
-        } else {
-            Object.assign(target, { [key]: source[key] });
-        }
         }
     }
     return target;
