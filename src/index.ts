@@ -53,6 +53,14 @@ if (cli.files.length === 0) {
 
 let parser = new LanguageModelParser();
 try {
+    parser.on('warning', (msg: string) => {
+        console.error(`WARNING: ${msg}`);
+    });
+    parser.on('error', (msg: string) => {
+        console.error(`ERROR: ${msg}`);
+        process.exit(1);
+    });
+
     let luisModel = parser.parse(cli.files, cli.culture as culture);
     console.log(JSON.stringify(luisModel, null, 2));
 } catch (err) {

@@ -1,0 +1,32 @@
+builtin:
+  - age
+  - datetime
+  - datetime
+  - dimension
+  - encyclopedia
+  - geography
+  - money
+  - money
+  - number
+  - ordinal
+  - percentage
+  - temperature
+
+phraselist:
+  colors:
+    words:
+      - red
+      - blue
+      - blue
+      - white
+
+list.${colors}:
+  - Red
+  - Blue
+  - Blue
+  - White
+
+my.test.intent:
+  - This is the color [${colors}:color]
+  - This is the color [${colors}:color]
+

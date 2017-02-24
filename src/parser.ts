@@ -19,12 +19,21 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
+import { EventEmitter } from 'events';
 
 import { Luis } from './luis-model';
 
+interface Token {
+    token: string;
+    startChar: number;
+    endChar: number;
+}
+
+const MIN_EXAMPLES_PER_INTENT = 3;
+
 export type culture = 'en-us' | 'es-es';
 
-export class LanguageModelParser {
+export class LanguageModelParser extends EventEmitter {
     private doc: any = {};
     public culture: culture;
 
@@ -32,10 +41,16 @@ export class LanguageModelParser {
         files.forEach(file => {
             // XXX Conflicting keys not supported. Multiple files could be merged together.
             try {
-                let yamlFileContents = fs.readFileSync(file, 'utf8');
-                mergeDeep(this.doc, yaml.safeLoad(yamlFileContents));
+                let yamlFileContents = yaml.safeLoad(fs.readFileSync(file, 'utf8'));
+                // Look for repeated elements in lists for each file and warn about it.
+                // Note that when merging, new duplicates could appear but those will be
+                // silently removed. The goal is to only warn at a file level.
+                this.warnAboutDuplicates(yamlFileContents);
+
+                mergeDeep(this.doc, yamlFileContents);
             } catch (err) {
-                throw new Error('File "' + file + '": ' + err.message);
+                let e = `File "${file}": ${err.message}`;
+                this.emitError(e);
             }
         });
 
@@ -59,41 +74,77 @@ export class LanguageModelParser {
         let keys = Object.keys(this.doc);
 
         let intentNames = keys
+            // remove the lists: lines starting by "list." that are not intents
             .filter(intentName => !intentName.startsWith('list.'))
             .filter(intentName => !intentName.startsWith('phraselist'))
             .filter(intentName => !intentName.startsWith('builtin'))
-            // remove the lists: lines starting by "list." that are not intents
             .map(intentName => {
                 if (intentName.length > 50) {
-                    throw new Error(`Intent "${intentName}" should be less than 50 characters. was ${intentName.length}`);
+                    let err = `Intent "${intentName}" should be less than 50 characters. was ${intentName.length}`;
+                    this.emitError(err);
                 }
                 return intentName;
             });
 
         let replacements = new Map<string, string[]>();
-        keys.filter(intentName => intentName.startsWith('list.'))
-            .forEach(intentName => {
+        keys.filter(listKey => listKey.startsWith('list.'))
+            .forEach(listKey => {
                 replacements.set(
-                    intentName.slice('list.${'.length, -1),
-                    this.doc[intentName]
+                    listKey.slice('list.${'.length, -1),
+                    this.doc[listKey]
                 );
             });
 
+        let usedReplacements = new Set<string>();
+        let missedReplacements = new Set<string>();
         let entitiesMap = new Map<string, Luis.Entity>();
-        let utterances = new Set<Luis.Utterance>();
+        let utterancesMap = new Map<string, Luis.Utterance>();
 
         intentNames.forEach(intent => {
             let sentences = this.doc[intent];
 
             sentences
-                .map((sentence: string) => this.expandVariables(sentence, replacements))
+                .map((sentence: string) => this.searchMissedVariables(sentence, replacements, missedReplacements))
+                .map((sentence: string) => this.expandVariables(sentence, replacements, usedReplacements))
                 .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
                 .forEach((sentence: string) => {
                     let utterance = this.buildUtterance(sentence, intent);
                     utterance.entities.forEach(entity => this.registerEntity(entity, entitiesMap));
-                    utterances.add(utterance);
+                    if (utterancesMap.has(utterance.text)) {
+                        let err = `Utterance "${utterance.text}" is assigned to ` +
+                            `both "${utterancesMap.get(utterance.text).intent}" and "${utterance.intent}" intents`;
+                        this.emitError(err);
+                    }
+                    utterancesMap.set(utterance.text, utterance);
                 });
         });
+
+        let utterances = Array.from(utterancesMap.values());
+
+        // Look for intents with too many examples
+        let examplesPerIntent = _.countBy(utterances, 'intent');
+        let intentsWithTooManyExamples = _.pickBy(examplesPerIntent, (counter: number) => counter < MIN_EXAMPLES_PER_INTENT);
+        if (!_.isEmpty(intentsWithTooManyExamples)) {
+            let err = `The following intents have less than ${MIN_EXAMPLES_PER_INTENT} examples:\n` +
+                _.keys(intentsWithTooManyExamples).map(intent => `  - ${intent}`).join('\n');
+            this.emitError(err);
+        }
+
+        // Print warnings about unused lists
+        if (usedReplacements.size < replacements.size) {
+            replacements.forEach((values, key) => {
+                if (!usedReplacements.has(key)) {
+                    this.emitWarning(`The list "list.$\{${key}\}" has not been used in any sentence.`);
+                }
+            });
+        }
+
+        // Print warnings about sentences with list placeholders that points to an non-existent list
+        if (missedReplacements.size > 0) {
+            missedReplacements.forEach(value => {
+                this.emitWarning(`The list "list.$\{${value}\}" is being used from some sentences but it has not been declared.`);
+            });
+        }
 
         let features = _.toPairs(this.doc.phraselist)
             .map(value => {
@@ -104,9 +155,10 @@ export class LanguageModelParser {
                     .map((word: any) => {
                         let strword = String(word);
                         if (strword.indexOf(',') !== -1) {
-                            throw new Error(`Prashe list "${name}" can not contain commas ('${strword}')`);
+                            let err = `Phrase list "${name}" can not contain commas ('${strword}')`;
+                            this.emitError(err);
                         }
-                        return this.tokenize(strword).join(' ');
+                        return LanguageModelParser.tokenize(strword).join(' ');
                     })
                     .join(',');
 
@@ -120,7 +172,7 @@ export class LanguageModelParser {
 
         let bingEntities = this.doc.builtin || [];
 
-        luisModel.utterances = Array.from(utterances.values());
+        luisModel.utterances = utterances;
         luisModel.entities = Array.from(entitiesMap.values());
         luisModel.intents = intentNames.map(intent => <Luis.Intent>{ name: intent });
         luisModel.model_features = features;
@@ -129,13 +181,25 @@ export class LanguageModelParser {
         return luisModel;
     }
 
-    private expandVariables(sentence: string, variables: Map<string, string[]>): string[] {
+    private searchMissedVariables(sentence: string, variables: Map<string, string[]>, missedVariables: Set<string>): string  {
+        let match = sentence.match(/\${(.+?)}/);
+        if (match) {
+            for (let i = 1; i < match.length; i++) {
+                if (!variables.has(match[i])) {
+                    missedVariables.add(match[i]);
+                }
+            }
+        }
+        return sentence;
+    }
+    private expandVariables(sentence: string, variables: Map<string, string[]>, usedVariables: Set<string>): string[] {
         let expandedSentences = new Set([sentence]);
-         expandedSentences.forEach(sentence => {
+        expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
                 values.forEach(value => {
                     let search = '${' + key + '}';
                     if (sentence.indexOf(search) !== -1) {
+                        usedVariables.add(key);
                         let newSentence = sentence.replace(search, value);
                         if (newSentence !== sentence) {
                             expandedSentences.add(newSentence);
@@ -212,30 +276,79 @@ export class LanguageModelParser {
         return normalized;
     }
 
-    private wordCount(sentence: string): number {
-        return this.tokenize(sentence).length;
+    private static wordCount(sentence: string): number {
+        return LanguageModelParser.tokenize(sentence).length;
     }
 
-    private tokenize(sentence: string): string[] {
-        if (sentence === '') {
+    /**
+     * Tokenize a sentence following the LUIS rules returning the tokens and delimiters.
+     * TODO: Memoize this function.
+     */
+    private static splitSentenceByTokens(sentence: string): Token[] {
+        if (!sentence || sentence.trim().length === 0) {
             return [];
         }
+        sentence = sentence.replace(/[\s\uFEFF\xA0]+$/g, '');  // Right trim
 
-        // separate non-word chars the same way MS does (ex. 'a,b,c' -> 'a , b , c')
-        let tokenized = String(sentence)
-            // ^\w\u00C0-\u017F means a not word, including accented chars
-            // (see http://stackoverflow.com/a/11550799/12388)
-            .replace(/[^\w\u00C0-\u017F]/g, capture => ` ${capture} `)
-            .replace(/_/g, capture => ` ${capture} `)
-            // omit non-word exceptions not handled by microsoft ('º' and 'ª')
-            .replace(' º ', 'º')
-            .replace(' ª ', 'ª')
-            // replace multiple spaces with a single one
-            .replace(/\s\s+/g, ' ')
-            .trim()
-            .split(' ');
+        // The following is a RegExp that contains the UTF-8 characters (http://www.utf8-chartable.de/unicode-utf8-table.pl)
+        // that are understood by LUIS as part of a word. Chars not included here
+        // are considered as separated words by LUIS and so as independent tokens
+        const WORD_CHARS =
+            '0-9A-Za-z' +  // Numbers and English letters
+            'ªº' +  // Ordinal indicators
+            '\u00B5' +  // Micro sign
+            '\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02AF' +  // Non-english latin letters (accents and others)
+            '\u02B0-\u02C1' +  // Modifier letters
+            '\u0370-\u0374\u0376-\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03FF' + // Greek and Coptic alphabets
+            '\u0400-\u0481\u048A-\u0523'  // Cyrillic alphabet
+            // Leaving the remaining alphabets for another brave person
+        ;
+        // A word is any number > 0 of WORD_CHARS
+        const WORD = new RegExp(`^[${WORD_CHARS}]+`);
+        // A non-word is any character not in WORD_CHARS and not a space
+        const NON_WORD = new RegExp(`^[^\s${WORD_CHARS}]`);
 
-        return tokenized;
+        let tokens: Token[] = [];
+
+        // Walk through the sentence consuming chunks that matches WORD or NON_WORD
+        let sentenceIndex = 0;
+        while (sentence.length) {
+            // Ignore spaces at the beginning of the remaining sentence
+            let leadingSpaces = sentence.match(/^\s*/)[0].length;
+            // Consume the spaces
+            sentenceIndex += leadingSpaces;
+            sentence = sentence.slice(leadingSpaces);
+
+            // Try a word
+            let tokenRegExpRes = sentence.match(WORD);
+            if (!tokenRegExpRes) {
+                // If not a word, try a non-word
+                tokenRegExpRes = sentence.match(NON_WORD);
+            }
+            if (!tokenRegExpRes) {
+                // If not word nor non-word... It should be impossible
+                throw new Error(`The sentence ${sentence} cannot be classified as word or non-word`);
+            }
+
+            let token = tokenRegExpRes[0];
+            tokens.push({
+                token: token,
+                startChar: sentenceIndex,
+                endChar: sentenceIndex + token.length - 1
+            });
+            // Consume the recognized token
+            sentenceIndex += token.length;
+            sentence = sentence.slice(token.length);
+        }
+
+        return tokens;
+    }
+
+    /**
+     * Tokenize a sentence following the LUIS rules and return an array of strings
+     */
+    private static tokenize(sentence: string): string[] {
+        return LanguageModelParser.splitSentenceByTokens(sentence).map(token => token.token);
     }
 
     private buildUtterance(sentence: string, intent: string) {
@@ -252,9 +365,9 @@ export class LanguageModelParser {
                 let extractedEntities = this.extractEntities(part);
                 if (extractedEntities.length) {
                     extractedEntities.forEach(entity => {
-                        let startPos = this.wordCount(parts);
+                        let startPos = LanguageModelParser.wordCount(parts);
                         parts += entity.entityValue;
-                        let endPos = this.wordCount(parts) - 1;
+                        let endPos = LanguageModelParser.wordCount(parts) - 1;
                         entities.push({
                             entity: entity.entityType,
                             startPos,
@@ -269,10 +382,34 @@ export class LanguageModelParser {
         let utterance: Luis.Utterance = {
             text: this.normalizeSentence(parts),
             intent,
-            entities: entities
+            entities
         };
 
         return utterance;
+    }
+
+    private warnAboutDuplicates(obj: any, prefix: string[] = []) {
+        const duplicates = (array: any[]) => _.uniq(_.filter(array, (v, i, col) => _.includes(col, v, i + 1)));
+
+        _.forEach(obj, (value, key) => {
+            if (value && Array.isArray(value)) {
+                let duplicatedValues = duplicates(value);
+                if (duplicatedValues.length) {
+                    let breadcrumb = prefix.concat(key).join(' -> ');
+                    this.emitWarning(`The key "${breadcrumb}" has the following duplicated values: ${duplicatedValues.join(', ')}`);
+                }
+            } else if (isObject(value)) {
+                this.warnAboutDuplicates(value, prefix.concat(key));
+            }
+        });
+    }
+
+    private emitWarning(msg: string) {
+        this.emit('warning', msg);
+    }
+
+    private emitError(msg: string) {
+        this.emit('error', msg);
     }
 }
 
