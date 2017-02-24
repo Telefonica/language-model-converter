@@ -1,4 +1,6 @@
-import { expect } from 'chai';
+import * as chai from 'chai';
+chai.use(require('chai-eventemitter'));
+const expect = chai.expect;
 
 import { LanguageModelParser } from './parser';
 import { Luis } from './luis-model';
@@ -6,6 +8,7 @@ import { Luis } from './luis-model';
 describe('Language Model Converter', () => {
     it('should parse a valid yaml file', () => {
         let parser = new LanguageModelParser();
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/en-basic.yaml'], 'en-us');
 
         let expectedIntents = [
@@ -57,12 +60,59 @@ describe('Language Model Converter', () => {
                 ]
             },
             {
+                text: 'this is a test (utterance). my entities madrid and london and uk',
+                intent: 'my.test.intent.1',
+                entities: [
+                    {
+                        entity: 'location::origin',
+                        startPos: 10,
+                        endPos: 10
+                    },
+                    {
+                        entity: 'location::destination',
+                        startPos: 12,
+                        endPos: 12
+                    },
+                    {
+                        entity: 'country',
+                        startPos: 14,
+                        endPos: 14
+                    }
+                ]
+            },
+            {
+                text: 'this is a test (utterance). your other entities ny and washington and usa',
+                intent: 'my.test.intent.1',
+                entities: [
+                    {
+                        entity: 'location::origin',
+                        startPos: 11,
+                        endPos: 11
+                    },
+                    {
+                        entity: 'location::destination',
+                        startPos: 13,
+                        endPos: 13
+                    },
+                    {
+                        entity: 'country',
+                        startPos: 15,
+                        endPos: 15
+                    }
+                ]
+            },
+            {
                 text: 'this is a test utterance 1',
                 intent: 'my.test.intent.2',
                 entities: []
             },
             {
                 text: 'this is a test utterance 2',
+                intent: 'my.test.intent.2',
+                entities: []
+            },
+            {
+                text: 'this is a test utterance 3',
                 intent: 'my.test.intent.2',
                 entities: []
             }
@@ -73,6 +123,7 @@ describe('Language Model Converter', () => {
 
     it('should add basic model information', () => {
         let parser = new LanguageModelParser();
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/en-basic.yaml'], 'en-us');
         expect(luisModel.luis_schema_version).to.not.be.empty;
         expect(luisModel.name).to.not.be.empty;
@@ -82,6 +133,7 @@ describe('Language Model Converter', () => {
 
     it('should parse a valid yaml file with corner cases', () => {
         let parser = new LanguageModelParser();
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/en-cornercases.yaml'], 'en-us');
 
         let expectedUtterances = [
@@ -215,18 +267,29 @@ describe('Language Model Converter', () => {
         expect(luisModel.utterances).to.eql(expectedUtterances);
     });
 
-    it('should deal with locale specifities', function() {
+    it('should deal with locale specificities', function() {
         let parser = new LanguageModelParser();
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/es-cornercases.yaml'], 'es-es');
         let expectedUtterances = [
             {
-                text: 'çç vayá cón úna eñes en éspaña no son güenas ní cigüenas en parís',
+                text: 'çç vayá cón úna eñes',
+                intent: 'my.test.intent.1',
+                entities: []
+            },
+            {
+                text: 'en éspaña no son güenas',
+                intent: 'my.test.intent.1',
+                entities: []
+            },
+            {
+                text: 'ní cigüenas en parís',
                 intent: 'my.test.intent.1',
                 entities: [
                     {
                         entity: 'location',
-                        startPos: 13,
-                        endPos: 13
+                        startPos: 3,
+                        endPos: 3
                     }
                 ]
             }
@@ -236,11 +299,56 @@ describe('Language Model Converter', () => {
 
     it('should parse a valid yaml file with variables (lists)', () => {
         let parser = new LanguageModelParser();
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/en-variables.yaml'], 'en-us');
 
         let expectedUtterances = [
             {
-                text: 'this is the country spain',
+                text: 'this is the other country spain',
+                intent: 'my.test.intent',
+                entities: [
+                    {
+                        entity: 'country',
+                        startPos: 5,
+                        endPos: 5
+                    }
+                ]
+            },
+            {
+                text: 'this is the other country france',
+                intent: 'my.test.intent',
+                entities: [
+                    {
+                        entity: 'country',
+                        startPos: 5,
+                        endPos: 5
+                    }
+                ]
+            },
+            {
+                text: 'this is the other awesome country spain',
+                intent: 'my.test.intent',
+                entities: [
+                    {
+                        entity: 'country',
+                        startPos: 6,
+                        endPos: 6
+                    }
+                ]
+            },
+            {
+                text: 'this is the other awesome country france',
+                intent: 'my.test.intent',
+                entities: [
+                    {
+                        entity: 'country',
+                        startPos: 6,
+                        endPos: 6
+                    }
+                ]
+            },
+            {
+                text: 'this is another country spain',
                 intent: 'my.test.intent',
                 entities: [
                     {
@@ -251,7 +359,7 @@ describe('Language Model Converter', () => {
                 ]
             },
             {
-                text: 'this is the country france',
+                text: 'this is another country france',
                 intent: 'my.test.intent',
                 entities: [
                     {
@@ -354,6 +462,7 @@ describe('Language Model Converter', () => {
             './test/fixtures/en-features-1.yaml',
             './test/fixtures/en-features-2.yaml'
         ];
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(yamls, 'en-us');
 
         let expectedModelFeatures = [
@@ -382,6 +491,7 @@ describe('Language Model Converter', () => {
 
     it('should parse builtin', function() {
         let parser = new LanguageModelParser();
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/builtin.yaml'], 'en-us');
 
         let expectedBingEntities = [
@@ -407,6 +517,7 @@ describe('Language Model Converter', () => {
             './test/fixtures/en-merge-1.yaml',
             './test/fixtures/en-merge-2.yaml'
         ];
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(yamls, 'en-us');
 
         let expectedModelFeatures = [
@@ -428,6 +539,7 @@ describe('Language Model Converter', () => {
             './test/fixtures/en-merge-2.yaml',
             './test/fixtures/en-merge-3.yaml'
         ];
+        parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(yamls, 'en-us');
 
         let expectedUtterances = [
@@ -456,4 +568,44 @@ describe('Language Model Converter', () => {
         expect(luisModel.utterances).to.eql(expectedUtterances);
     });
 
+    it('should emit a warning when there are duplicated values', function() {
+        let parser = new LanguageModelParser();
+        let parse = parser.parse.bind(parser, ['./test/fixtures/en-duplicated.yaml'], 'en-us');
+
+        expect(parse).to.emitFrom(parser, 'warning');
+    });
+
+    it('should emit an error when there is some example assigned to more than one intent', function() {
+        let parser = new LanguageModelParser();
+        let parse = parser.parse.bind(parser, ['./test/fixtures/en-examples-several-intents.yaml'], 'en-us');
+
+        // Needed to avoid the Error: Uncaught, unspecified "error" event.
+        parser.on('error', () => { /* noop */ });
+
+        expect(parse).to.emitFrom(parser, 'error');
+    });
+
+    it('should emit a warning when there is some example referencing an undeclared variable', function() {
+        let parser = new LanguageModelParser();
+        let parse = parser.parse.bind(parser, ['./test/fixtures/en-missed-variables.yaml'], 'en-us');
+
+        expect(parse).to.emitFrom(parser, 'warning');
+    });
+
+    it('should emit a warning when there is some declared variable that is not used in any example', function() {
+        let parser = new LanguageModelParser();
+        let parse = parser.parse.bind(parser, ['./test/fixtures/en-unused-variables.yaml'], 'en-us');
+
+        expect(parse).to.emitFrom(parser, 'warning');
+    });
+
+    it('should emit an error when there are less than 3 examples in an intent', function() {
+        let parser = new LanguageModelParser();
+        let parse = parser.parse.bind(parser, ['./test/fixtures/en-too-many-examples.yaml'], 'en-us');
+
+        // Needed to avoid the Error: Uncaught, unspecified "error" event.
+        parser.on('error', () => { /* noop */ });
+
+        expect(parse).to.emitFrom(parser, 'error');
+    });
 });

@@ -2,14 +2,10 @@ list.${country}:
   - Spain
   - France
 
-list.${colors}:
-  - Red
-  - Blue
-
-my.test.intent:
-  - This is the other country [${country}:country]
-  - This is the other awesome country [${country}:country]
-  - This is another country [${country}:country]
+my.test.entities:
+  - This is the country [${country}:country] with entity
+  - This is a country [${country}:country] with entity
+  - This is antoher country [${country}:country] with entity
 
 my.test.expansion:
   - This is the country ${country}
