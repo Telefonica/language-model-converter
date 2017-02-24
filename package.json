@@ -1,6 +1,6 @@
 {
   "name": "@telefonica/language-model-converter",
-  "version": "2.5.1",
+  "version": "2.6.0",
   "description": "Language model converter yaml <-> json for LUIS",
   "license": "Apache-2.0",
   "repository": "https://github.com/Telefonica/yot-bot/tree/master/language-model-converter",
