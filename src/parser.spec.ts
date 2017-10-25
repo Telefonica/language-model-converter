@@ -125,9 +125,11 @@ describe('Language Model Converter', () => {
         let parser = new LanguageModelParser();
         parser.on('warning', (msg: string) => { throw new Error(`Unexpected Warning: ${msg}`); });
         let luisModel = parser.parse(['./test/fixtures/en-basic.yaml'], 'en-us');
+        /* tslint:disable:no-unused-expression */
         expect(luisModel.luis_schema_version).to.not.be.empty;
         expect(luisModel.name).to.not.be.empty;
         expect(luisModel.desc).to.not.be.empty;
+        /* tslint:enable:no-unused-expression */
         expect(luisModel.culture).to.eq('en-us');
     });
 

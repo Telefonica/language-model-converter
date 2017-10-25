@@ -16,22 +16,16 @@
 */
 
 import * as commander from 'commander';
-import * as path from 'path';
 import * as glob from 'glob';
 
 import { LanguageModelParser, culture } from './parser';
 
-interface InterfaceCLI extends commander.ICommand {
-    culture?: string;
-    files?: string[];
-}
-
-const cli: InterfaceCLI = commander
+const cli = commander
     .description('Convert language files defined to LUIS format')
     .usage('[options] <files>')
     .option('-c, --culture <culture>', 'Culture code this files belongs to (ex. "en-us")');
 
-commander.on('--help', function(){
+commander.on('--help', function () {
     console.log(`  Examples:
 
     Convert all files in 'models' and its subfolders, starting with 'en',
@@ -44,7 +38,7 @@ commander.parse(process.argv);
 
 cli.files = cli.args
     .map(pattern => glob.sync(pattern))
-    .reduce((a, b) => a.concat(b), []) ;
+    .reduce((a, b) => a.concat(b), []);
 
 if (cli.files.length === 0) {
     console.error(`No files found`);

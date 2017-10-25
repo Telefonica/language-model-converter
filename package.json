@@ -1,9 +1,9 @@
 {
   "name": "@telefonica/language-model-converter",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Language model converter yaml <-> json for LUIS",
   "license": "Apache-2.0",
-  "repository": "https://github.com/Telefonica/yot-bot/tree/master/language-model-converter",
+  "repository": "https://github.com/Telefonica/language-model-converter",
   "author": "TDAF <tdaf@tid.es>",
   "bin": {
     "language-model-converter": "./bin/language-model-converter"
@@ -19,35 +19,35 @@
     "lint": "tslint './src/**/*.ts'",
     "prepublish": "npm run build",
     "security": "nsp check",
-    "test": "npm run build && mocha -R spec 'lib/**/*.spec.js'"
+    "test": "npm run build && mocha -R spec lib/**/*.spec.js"
   },
   "dependencies": {
-    "commander": "^2.9.0",
-    "glob": "^7.1.0",
-    "js-yaml": "^3.6.1",
-    "lodash": "^4.16.4"
+    "commander": "^2.11.0",
+    "glob": "^7.1.2",
+    "js-yaml": "^3.10.0",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "@types/chai": "^3.4.33",
-    "@types/commander": "^2.3.30",
-    "@types/glob": "^5.0.30",
-    "@types/js-yaml": "^3.5.28",
-    "@types/lodash": "^4.14.37",
-    "@types/mocha": "^2.2.32",
-    "@types/node": "^6.0.40",
-    "@types/sinon": "^1.16.30",
-    "chai": "^3.5.0",
+    "@types/chai": "^4.0.4",
+    "@types/commander": "^2.11.0",
+    "@types/js-yaml": "^3.9.1",
+    "@types/lodash": "^4.14.78",
+    "@types/mocha": "^2.2.43",
+    "@types/node": "^6",
+    "@types/sinon": "^2.3.6",
+    "@types/glob": "^5.0.33",
+    "chai": "^4.1.2",
     "chai-eventemitter": "^1.1.1",
-    "mocha": "^3.0.2",
-    "nock": "^8.0.0",
-    "nodemon": "^1.9.2",
-    "nsp": "^2.6.1",
+    "mocha": "^4.0.1",
+    "nock": "^9.0.25",
+    "nodemon": "^1.12.1",
+    "nsp": "^2.8.1",
     "parse-glob": "^3.0.4",
-    "shx": "^0.1.4",
-    "sinon": "^1.17.5",
-    "sinon-chai": "^2.8.0",
-    "tslint": "^3.15.1",
-    "typescript": "^2.0.0"
+    "shx": "^0.2.2",
+    "sinon": "^4.0.1",
+    "sinon-chai": "^2.14.0",
+    "tslint": "^5.8.0",
+    "typescript": "^2.5.3"
   },
   "engines": {
     "node": "~6.3.0"
