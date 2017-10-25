@@ -29,20 +29,20 @@ export namespace Luis {
         model_features: ModelFeature[];
         regex_features: any[];
         utterances: Utterance[];
-    };
+    }
 
     export interface Utterance {
         text: string;
         intent: string;
         entities: EntityPosition[];
-    };
+    }
 
     export interface ModelFeature {
         name: string;
         mode: boolean;
         words: string;
         activated: boolean;
-    };
+    }
 
     export interface EntityPosition {
         entity: string;

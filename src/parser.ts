@@ -16,7 +16,6 @@
 */
 
 import * as fs from 'fs';
-import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as _ from 'lodash';
 import { EventEmitter } from 'events';
@@ -147,7 +146,7 @@ export class LanguageModelParser extends EventEmitter {
         }
 
         let features = _.toPairs(this.doc.phraselist)
-            .map(value => {
+            .map((value: any) => {
                 let name = String(value[0]);
                 let activated = value[1].activated == null ? true : value[1].activated;
                 let mode = value[1].mode == null ? true : value[1].mode;
