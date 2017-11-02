@@ -26,7 +26,8 @@ list.${colors}:
   - Blue
   - White
 
-my.test.intent:
-  - This is the color [${colors}:color]
-  - This is the color [${colors}:color]
+intents:
+  my.test.intent:
+    - This is the color [${colors}:color]
+    - This is the color [${colors}:color]
 

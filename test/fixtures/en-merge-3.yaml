@@ -3,5 +3,6 @@ phraselist:
     words:
     # Empty
 
-my.test.intent:
-# Empty
+intents:
+  my.test.intent:
+  # Empty

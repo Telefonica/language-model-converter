@@ -1,4 +1,5 @@
-my.test.intent.1:
-  - Çç VAyÁ cÓn Úna eÑes
-  - en Éspaña no son gÜenas
-  - nÍ cigüenas en [ParÍs:location]
+intents:
+  my.test.intent.1:
+    - Çç VAyÁ cÓn Úna eÑes
+    - en Éspaña no son gÜenas
+    - nÍ cigüenas en [ParÍs:location]
