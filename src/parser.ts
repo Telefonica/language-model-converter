@@ -72,19 +72,6 @@ export class LanguageModelParser extends EventEmitter {
 
         let keys = Object.keys(this.doc);
 
-        let intentNames = keys
-            // remove the lists: lines starting by "list." that are not intents
-            .filter(intentName => !intentName.startsWith('list.'))
-            .filter(intentName => !intentName.startsWith('phraselist'))
-            .filter(intentName => !intentName.startsWith('builtin'))
-            .map(intentName => {
-                if (intentName.length > 50) {
-                    let err = `Intent "${intentName}" should be less than 50 characters. was ${intentName.length}`;
-                    this.emitError(err);
-                }
-                return intentName;
-            });
-
         let replacements = new Map<string, string[]>();
         keys.filter(listKey => listKey.startsWith('list.'))
             .forEach(listKey => {
@@ -99,8 +86,19 @@ export class LanguageModelParser extends EventEmitter {
         let entitiesMap = new Map<string, Luis.Entity>();
         let utterancesMap = new Map<string, Luis.Utterance>();
 
+        let intentNames = this.doc.intents ?
+            Object.keys(this.doc.intents)
+                .map(intentName => {
+                    if (intentName.length > 50) {
+                        let err = `Intent "${intentName}" should be less than 50 characters. was ${intentName.length}`;
+                        this.emitError(err);
+                    }
+                    return intentName;
+                }) :
+            [];
+
         intentNames.forEach(intent => {
-            let sentences = this.doc[intent];
+            let sentences = this.doc.intents[intent];
 
             sentences
                 .map((sentence: string) => this.searchMissedVariables(sentence, replacements, missedReplacements))
@@ -180,7 +178,7 @@ export class LanguageModelParser extends EventEmitter {
         return luisModel;
     }
 
-    private searchMissedVariables(sentence: string, variables: Map<string, string[]>, missedVariables: Set<string>): string  {
+    private searchMissedVariables(sentence: string, variables: Map<string, string[]>, missedVariables: Set<string>): string {
         let match = sentence.match(/\${(.+?)}/);
         if (match) {
             for (let i = 1; i < match.length; i++) {
@@ -191,7 +189,7 @@ export class LanguageModelParser extends EventEmitter {
         }
         return sentence;
     }
-    private expandVariables(sentence: string, variables: Map<string, string[]>, usedVariables: Set<string>): string[] {
+    private expandVariables(sentence: string, variables: Map<string, string[]>, usedVariables: Set<string>): string[]  {
         let expandedSentences = new Set([sentence]);
         expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
@@ -214,7 +212,7 @@ export class LanguageModelParser extends EventEmitter {
         return Array.from(expandedSentences);
     }
 
-    private extractEntities(sentence: string): any[] {
+    private extractEntities(sentence: string): any[]  {
         let regexEntity = /\[(.+?):(.+?)\]/g; // entities are tagged as [entityValue:entityType], ex. [Burgos:city]
 
         let entities: any[] = [];
@@ -301,7 +299,7 @@ export class LanguageModelParser extends EventEmitter {
             '\u0370-\u0374\u0376-\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03FF' + // Greek and Coptic alphabets
             '\u0400-\u0481\u048A-\u0523'  // Cyrillic alphabet
             // Leaving the remaining alphabets for another brave person
-        ;
+            ;
         // A word is any number > 0 of WORD_CHARS
         const WORD = new RegExp(`^[${WORD_CHARS}]+`);
         // A non-word is any character not in WORD_CHARS and not a space
@@ -419,7 +417,7 @@ export class LanguageModelParser extends EventEmitter {
  * @returns {boolean}
  */
 function isObject(item: any) {
-     return (item && typeof item === 'object' && !Array.isArray(item));
+    return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
 /**

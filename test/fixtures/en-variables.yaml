@@ -6,14 +6,15 @@ list.${colors}:
   - Red
   - Blue
 
-my.test.intent:
-  - This is the other country [${country}:country]
-  - This is the other awesome country [${country}:country]
-  - This is another country [${country}:country]
+intents:
+  my.test.intent:
+    - This is the other country [${country}:country]
+    - This is the other awesome country [${country}:country]
+    - This is another country [${country}:country]
 
-my.test.expansion:
-  - This is the country ${country}
-  - This is the color ${colors}
-  - This is the ${colors} ${country}
-  - This is the ${country} ${country}
-  - "[${country}:country]"
+  my.test.expansion:
+    - This is the country ${country}
+    - This is the color ${colors}
+    - This is the ${colors} ${country}
+    - This is the ${country} ${country}
+    - "[${country}:country]"

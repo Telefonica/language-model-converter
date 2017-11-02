@@ -6,12 +6,13 @@ list.${colors}:
   - Red
   - Blue
 
-my.test.entities:
-  - This is the country [${country}:country] with entity
-  - This is a country [${country}:country] with entity
-  - This is another country [${country}:country] with entity
+intents:
+  my.test.entities:
+    - This is the country [${country}:country] with entity
+    - This is a country [${country}:country] with entity
+    - This is another country [${country}:country] with entity
 
-my.test.expansion:
-  - This is the country ${country}
-  - This is the ${country} ${country}
-  - "[${country}:country]"
+  my.test.expansion:
+    - This is the country ${country}
+    - This is the ${country} ${country}
+    - "[${country}:country]"

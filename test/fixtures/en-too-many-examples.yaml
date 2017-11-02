@@ -1,7 +1,8 @@
-my.test.intent.1:
-  - This is a test utterance 1
+intents:
+  my.test.intent.1:
+    - This is a test utterance 1
 
-my.test.intent.2:
-  - This is a test utterance 2
-  - This is a test utterance 3
-  - This is a test utterance 4
+  my.test.intent.2:
+    - This is a test utterance 2
+    - This is a test utterance 3
+    - This is a test utterance 4

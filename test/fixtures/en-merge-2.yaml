@@ -5,6 +5,7 @@ phraselist:
       - green
       - black
 
-my.test.intent:
-  - This is a test utterance 3
-  - This is a test utterance 4
+intents:
+  my.test.intent:
+    - This is a test utterance 3
+    - This is a test utterance 4
