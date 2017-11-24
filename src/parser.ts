@@ -101,6 +101,14 @@ export class LanguageModelParser extends EventEmitter {
             let sentences = this.doc.intents[intent];
 
             sentences
+                .map((sentence: string) => {
+                    let match = sentence.match(/\w+\[.*\]/);
+                    if (match) {
+                        let err = `White space missing before entity declaration in entry "${sentence}" -> "${match[0]}"`;
+                        this.emitError(err);
+                    }
+                    return sentence;
+                })
                 .map((sentence: string) => this.searchMissedVariables(sentence, replacements, missedReplacements))
                 .map((sentence: string) => this.expandVariables(sentence, replacements, usedReplacements))
                 .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
@@ -189,7 +197,7 @@ export class LanguageModelParser extends EventEmitter {
         }
         return sentence;
     }
-    private expandVariables(sentence: string, variables: Map<string, string[]>, usedVariables: Set<string>): string[]  {
+    private expandVariables(sentence: string, variables: Map<string, string[]>, usedVariables: Set<string>): string[] {
         let expandedSentences = new Set([sentence]);
         expandedSentences.forEach(sentence => {
             variables.forEach((values, key) => {
@@ -212,7 +220,7 @@ export class LanguageModelParser extends EventEmitter {
         return Array.from(expandedSentences);
     }
 
-    private extractEntities(sentence: string): any[]  {
+    private extractEntities(sentence: string): any[] {
         let regexEntity = /\[(.+?):(.+?)\]/g; // entities are tagged as [entityValue:entityType], ex. [Burgos:city]
 
         let entities: any[] = [];

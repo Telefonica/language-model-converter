@@ -1,8 +1,7 @@
 intents:
   my.test.intent.1:
     - This is a test utterance 1
-    - This is a test utterance 2
+    - This is a test utterance 2 with missing whitespaces[before entity declaration:entity]
 
   my.test.intent.2:
-    - This is a test utterance 1
     - This is a test utterance 3
