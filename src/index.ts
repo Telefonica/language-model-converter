@@ -23,7 +23,8 @@ import { LanguageModelParser, culture } from './parser';
 const cli = commander
     .description('Convert language files defined to LUIS format')
     .usage('[options] <files>')
-    .option('-c, --culture <culture>', 'Culture code this files belongs to (ex. "en-us")');
+    .option('-c, --culture <culture>', 'Culture code this files belongs to (ex. "en-us")')
+    .option('-n, --ner', 'Generate a model compatible with NER');
 
 commander.on('--help', function () {
     console.log(`  Examples:
@@ -55,7 +56,7 @@ try {
         process.exit(1);
     });
 
-    let luisModel = parser.parse(cli.files, cli.culture as culture);
+    let luisModel = parser.parse(cli.files, cli.culture as culture, cli.ner);
     console.log(JSON.stringify(luisModel, null, 2));
 } catch (err) {
     console.error(err);

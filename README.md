@@ -97,6 +97,7 @@ language-model-converter --help
 
     -h, --help               output usage information
     -c, --culture <culture>  Culture code this files belongs to (ex. "en-us")
+    -n, --ner                Generate a model compatible with NER
 
   Examples:
 
