@@ -36,7 +36,7 @@ export class LanguageModelParser extends EventEmitter {
     private doc: any = {};
     public culture: culture;
 
-    parse(files: string[], culture: culture): Luis.Model {
+    parse(files: string[], culture: culture, ner?: boolean): Luis.Model {
         files.forEach(file => {
             // XXX Conflicting keys not supported. Multiple files could be merged together.
             try {
@@ -56,7 +56,7 @@ export class LanguageModelParser extends EventEmitter {
         this.culture = culture;
 
         let luisModel: Luis.Model = {
-            luis_schema_version: '1.3.0',
+            luis_schema_version: ner ? '2.1.0' : '1.3.0',
             name: 'tef',
             desc: 'Bot Model ' + new Date(),
             culture: culture,
@@ -102,9 +102,9 @@ export class LanguageModelParser extends EventEmitter {
 
             sentences
                 .map((sentence: string) => {
-                    let match = sentence.match(/\w+\[.*\]/);
+                    let match = sentence.match(/\w+\[.*\]\w+/);
                     if (match) {
-                        let err = `White space missing before entity declaration in entry "${sentence}" -> "${match[0]}"`;
+                        let err = `White space missing before or after entity declaration in entry "${sentence}" -> "${match[0]}"`;
                         this.emitError(err);
                     }
                     return sentence;
@@ -113,7 +113,7 @@ export class LanguageModelParser extends EventEmitter {
                 .map((sentence: string) => this.expandVariables(sentence, replacements, usedReplacements))
                 .reduce((a: string[], b: string[]) => a.concat(b)) // flatten arrays
                 .forEach((sentence: string) => {
-                    let utterance = this.buildUtterance(sentence, intent);
+                    let utterance = this.buildUtterance(sentence, intent, ner);
                     utterance.entities.forEach(entity => this.registerEntity(entity, entitiesMap));
                     if (utterancesMap.has(utterance.text)) {
                         let err = `Utterance "${utterance.text}" is assigned to ` +
@@ -158,12 +158,14 @@ export class LanguageModelParser extends EventEmitter {
                 let mode = value[1].mode == null ? true : value[1].mode;
                 let words = (value[1].words || [])
                     .map((word: any) => {
-                        let strword = String(word);
+                        let strword = ner ? '[' + String(word) + ':' + name + ']' : String(word);
                         if (strword.indexOf(',') !== -1) {
                             let err = `Phrase list "${name}" can not contain commas ('${strword}')`;
                             this.emitError(err);
                         }
-                        return LanguageModelParser.tokenize(strword).join(' ');
+                        return ner ?
+                            strword :
+                            LanguageModelParser.tokenize(strword).join(' ');
                     })
                     .join(',');
 
@@ -356,12 +358,14 @@ export class LanguageModelParser extends EventEmitter {
         return LanguageModelParser.splitSentenceByTokens(sentence).map(token => token.token);
     }
 
-    private buildUtterance(sentence: string, intent: string) {
+    private buildUtterance(sentence: string, intent: string, ner: boolean) {
         let entities: any[] = [];
         let parts = '';
 
-        sentence
-            .trim()
+        let trimmedSentence = sentence
+            .replace(/\s\s+/g, ' ') // replace multiple spaces with a single one
+            .trim();
+        trimmedSentence
             // split by entities:
             // "Santiago Bernabeu went to [Santiago Bernabeu:place]." will split in
             // [ "Santiago Bernabeu went to ", "[Santiago Bernabeu:place]", "." ]
@@ -370,9 +374,15 @@ export class LanguageModelParser extends EventEmitter {
                 let extractedEntities = this.extractEntities(part);
                 if (extractedEntities.length) {
                     extractedEntities.forEach(entity => {
-                        let startPos = LanguageModelParser.wordCount(parts);
-                        parts += entity.entityValue;
-                        let endPos = LanguageModelParser.wordCount(parts) - 1;
+                        let startPos = ner ?
+                            trimmedSentence.indexOf(part) :
+                            LanguageModelParser.wordCount(parts);
+                        parts += ner ?
+                            part :
+                            entity.entityValue;
+                        let endPos = ner ?
+                            startPos + part.length - 1 :
+                            LanguageModelParser.wordCount(parts) - 1;
                         entities.push({
                             entity: entity.entityType,
                             startPos,
@@ -385,7 +395,7 @@ export class LanguageModelParser extends EventEmitter {
             });
 
         let utterance: Luis.Utterance = {
-            text: this.normalizeSentence(parts),
+            text: ner ? parts : this.normalizeSentence(parts),
             intent,
             entities
         };
