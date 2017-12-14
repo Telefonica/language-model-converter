@@ -163,9 +163,7 @@ export class LanguageModelParser extends EventEmitter {
                             let err = `Phrase list "${name}" can not contain commas ('${strword}')`;
                             this.emitError(err);
                         }
-                        return ner ?
-                            strword :
-                            LanguageModelParser.tokenize(strword).join(' ');
+                        return LanguageModelParser.tokenize(strword).join(' ');
                     })
                     .join(',');
 
